@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "page_table_multiarch",
+    "page_table_entry",
+]
