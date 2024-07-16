@@ -1,4 +1,4 @@
-# page_table
+# page_table_multiarch
 
 [![Crates.io](https://img.shields.io/crates/v/page_table_multiarch)](https://crates.io/crates/page_table_multiarch)
 
@@ -18,12 +18,12 @@ Currently supported architectures and page table structures:
 
 [1]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/struct.PageTable64.html
 [2]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/trait.PagingMetaData.html
-[3]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/trait.GenericPTE.html
+[3]: https://docs.rs/page_table_entry/latest/page_table_entry/trait.GenericPTE.html
 [4]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/trait.PagingHandler.html
-[5]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/x86_64/struct.X64PageTable.html
-[6]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/aarch64/struct.A64PageTable.html
-[7]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/riscv/struct.Sv39PageTable.html
-[8]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/riscv/struct.Sv48PageTable.html
+[5]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/x86_64/type.X64PageTable.html
+[6]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/aarch64/type.A64PageTable.html
+[7]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/riscv/type.Sv39PageTable.html
+[8]: https://docs.rs/page_table_multiarch/latest/page_table_multiarch/riscv/type.Sv48PageTable.html
 
 ## Examples (x86_64)
 

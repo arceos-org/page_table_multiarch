@@ -1,4 +1,4 @@
-# page_table_entry
+# page_table_multiarch
 
 Generic, unified, architecture-independent, and OS-free page table structures for various hardware architectures.
 
