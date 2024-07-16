@@ -214,6 +214,9 @@ impl GenericPTE for A64PTE {
         self.0 = (self.0 & Self::PHYS_ADDR_MASK) | attr.bits();
     }
 
+    fn bits(self) -> usize {
+        self.0 as usize
+    }
     fn is_unused(&self) -> bool {
         self.0 == 0
     }

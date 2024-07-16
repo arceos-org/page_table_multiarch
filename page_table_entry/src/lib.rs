@@ -1,18 +1,7 @@
-//! This crate provides the definition of page table entry for various hardware
-//! architectures.
-//!
-//! Currently supported architectures and page table entry types:
-//!
-//! - x86: [`x86_64::X64PTE`]
-//! - ARM: [`aarch64::A64PTE`]
-//! - RISC-V: [`riscv::Rv64PTE`]
-//!
-//! All these types implement the [`GenericPTE`] trait, which provides unified
-//! methods for manipulating various page table entries.
-
 #![no_std]
 #![feature(doc_auto_cfg)]
 #![feature(doc_cfg)]
+#![doc = include_str!("../README.md")]
 
 mod arch;
 
@@ -60,6 +49,8 @@ pub trait GenericPTE: Debug + Clone + Copy + Sync + Send + Sized {
     /// Set flags of the entry.
     fn set_flags(&mut self, flags: MappingFlags, is_huge: bool);
 
+    /// Returns the raw bits of this entry.
+    fn bits(self) -> usize;
     /// Returns whether this entry is zero.
     fn is_unused(&self) -> bool;
     /// Returns whether this entry flag indicates present.

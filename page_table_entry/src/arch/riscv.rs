@@ -105,6 +105,9 @@ impl GenericPTE for Rv64PTE {
         self.0 = (self.0 & Self::PHYS_ADDR_MASK) | flags.bits() as u64;
     }
 
+    fn bits(self) -> usize {
+        self.0 as usize
+    }
     fn is_unused(&self) -> bool {
         self.0 == 0
     }
