@@ -1,11 +1,11 @@
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 #![feature(doc_auto_cfg)]
 #![feature(doc_cfg)]
 #![doc = include_str!("../README.md")]
 
 mod arch;
 
-use core::fmt::Debug;
+use core::fmt::{self, Debug};
 use memory_addr::PhysAddr;
 
 pub use self::arch::*;
@@ -13,7 +13,7 @@ pub use self::arch::*;
 bitflags::bitflags! {
     /// Generic page table entry flags that indicate the corresponding mapped
     /// memory region permissions and attributes.
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Clone, Copy, PartialEq)]
     pub struct MappingFlags: usize {
         /// The memory is readable.
         const READ          = 1 << 0;
@@ -27,6 +27,12 @@ bitflags::bitflags! {
         const DEVICE        = 1 << 4;
         /// The memory is uncached.
         const UNCACHED      = 1 << 5;
+    }
+}
+
+impl Debug for MappingFlags {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Debug::fmt(&self.0, f)
     }
 }
 
