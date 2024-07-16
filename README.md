@@ -1,15 +1,14 @@
-# page_table
+# page_table_entry
 
-This crate provides generic, unified, architecture-independent, and OS-free page table structures for various hardware architectures.
+Generic, unified, architecture-independent, and OS-free page table structures for various hardware architectures.
 
-The core struct is [`PageTable64<M, PTE, IF>`]. OS-functions and architecture-dependent types are provided by generic parameters:
+Currently supported architectures:
 
-- `M`: The architecture-dependent metadata, requires to implement the [`PagingMetaData`] trait.
-- `PTE`: The architecture-dependent page table entry, requires to implement the [`GenericPTE`] trait.
-- `IF`: OS-functions such as physical memory allocation, requires to implement the [`PagingIf`] trait.
+- x86_64
+- AArch64
+- RISC-V (Sv39, Sv48)
 
-Currently supported architectures and page table structures:
+See the documentation of the following crates for more details:
 
-- x86: [`x86_64::X64PageTable`]
-- ARM: [`aarch64::A64PageTable`]
-- RISC-V: [`riscv::Sv39PageTable`], [`riscv::Sv48PageTable`]
+1. [page_table_entry](https://crates.io/crates/page_table_entry): Page table entry definition for various hardware architectures. [![Crates.io](https://img.shields.io/crates/v/page_table_entry)](https://crates.io/crates/page_table_entry)
+2. [page_table_multiarch](https://crates.io/crates/page_table_multiarch): Generic page table structures for various hardware architectures. [![Crates.io](https://img.shields.io/crates/v/page_table_multiarch)](https://crates.io/crates/page_table_multiarch)
