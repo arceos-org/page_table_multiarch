@@ -1,15 +1,15 @@
 //! This crate provides generic, unified, architecture-independent, and OS-free
 //! page table structures for various hardware architectures.
 //!
-//! The core struct is [`PageTable64<M, PTE, IF>`]. OS-functions and
+//! The core struct is [`PageTable64<M, PTE, H>`]. OS-functions and
 //! architecture-dependent types are provided by generic parameters:
 //!
 //! - `M`: The architecture-dependent metadata, requires to implement
 //!   the [`PagingMetaData`] trait.
 //! - `PTE`: The architecture-dependent page table entry, requires to implement
 //!   the [`GenericPTE`] trait.
-//! - `IF`: OS-functions such as physical memory allocation, requires to
-//!   implement the [`PagingIf`] trait.
+//! - `H`: OS-functions such as physical memory allocation, requires to
+//!   implement the [`PagingHandler`] trait.
 //!
 //! Currently supported architectures and page table structures:
 //!
@@ -84,7 +84,7 @@ pub trait PagingMetaData: Sync + Send + Sized {
 
 /// The low-level **OS-dependent** helpers that must be provided for
 /// [`PageTable64`].
-pub trait PagingIf: Sized {
+pub trait PagingHandler: Sized {
     /// Request to allocate a 4K-sized physical frame.
     fn alloc_frame() -> Option<PhysAddr>;
     /// Request to free a allocated physical frame.

@@ -5,7 +5,7 @@ use core::marker::PhantomData;
 
 use memory_addr::{PhysAddr, VirtAddr, PAGE_SIZE_4K};
 
-use crate::{GenericPTE, PagingIf, PagingMetaData};
+use crate::{GenericPTE, PagingHandler, PagingMetaData};
 use crate::{MappingFlags, PageSize, PagingError, PagingResult};
 
 const ENTRY_COUNT: usize = 512;
@@ -30,13 +30,13 @@ const fn p1_index(vaddr: VirtAddr) -> usize {
 ///
 /// It also tracks all intermediate level tables. They will be deallocated
 /// When the [`PageTable64`] itself is dropped.
-pub struct PageTable64<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> {
+pub struct PageTable64<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> {
     root_paddr: PhysAddr,
     intrm_tables: Vec<PhysAddr>,
-    _phantom: PhantomData<(M, PTE, IF)>,
+    _phantom: PhantomData<(M, PTE, H)>,
 }
 
-impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
+impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H> {
     /// Creates a new page table instance or returns the error.
     ///
     /// It will allocate a new page for the root page table.
@@ -249,10 +249,10 @@ impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
 }
 
 // Private implements.
-impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
+impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H> {
     fn alloc_table() -> PagingResult<PhysAddr> {
-        if let Some(paddr) = IF::alloc_frame() {
-            let ptr = IF::phys_to_virt(paddr).as_mut_ptr();
+        if let Some(paddr) = H::alloc_frame() {
+            let ptr = H::phys_to_virt(paddr).as_mut_ptr();
             unsafe { core::ptr::write_bytes(ptr, 0, PAGE_SIZE_4K) };
             Ok(paddr)
         } else {
@@ -261,12 +261,12 @@ impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
     }
 
     fn table_of<'a>(&self, paddr: PhysAddr) -> &'a [PTE] {
-        let ptr = IF::phys_to_virt(paddr).as_ptr() as _;
+        let ptr = H::phys_to_virt(paddr).as_ptr() as _;
         unsafe { core::slice::from_raw_parts(ptr, ENTRY_COUNT) }
     }
 
     fn table_of_mut<'a>(&self, paddr: PhysAddr) -> &'a mut [PTE] {
-        let ptr = IF::phys_to_virt(paddr).as_mut_ptr() as _;
+        let ptr = H::phys_to_virt(paddr).as_mut_ptr() as _;
         unsafe { core::slice::from_raw_parts_mut(ptr, ENTRY_COUNT) }
     }
 
@@ -377,10 +377,10 @@ impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
     }
 }
 
-impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> Drop for PageTable64<M, PTE, IF> {
+impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> Drop for PageTable64<M, PTE, H> {
     fn drop(&mut self) {
         for frame in &self.intrm_tables {
-            IF::dealloc_frame(*frame);
+            H::dealloc_frame(*frame);
         }
     }
 }

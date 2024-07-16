@@ -13,4 +13,4 @@ impl PagingMetaData for X64PagingMetaData {
 }
 
 /// x86_64 page table.
-pub type X64PageTable<I> = PageTable64<X64PagingMetaData, X64PTE, I>;
+pub type X64PageTable<H> = PageTable64<X64PagingMetaData, X64PTE, H>;

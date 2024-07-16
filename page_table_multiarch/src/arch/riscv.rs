@@ -24,7 +24,7 @@ impl PagingMetaData for Sv48MetaData {
 }
 
 /// Sv39: Page-Based 39-bit (3 levels) Virtual-Memory System.
-pub type Sv39PageTable<I> = PageTable64<Sv39MetaData, Rv64PTE, I>;
+pub type Sv39PageTable<H> = PageTable64<Sv39MetaData, Rv64PTE, H>;
 
 /// Sv48: Page-Based 48-bit (4 levels) Virtual-Memory System.
-pub type Sv48PageTable<I> = PageTable64<Sv48MetaData, Rv64PTE, I>;
+pub type Sv48PageTable<H> = PageTable64<Sv48MetaData, Rv64PTE, H>;
