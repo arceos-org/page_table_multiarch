@@ -7,7 +7,7 @@ use page_table_entry::aarch64::A64PTE;
 #[derive(Copy, Clone)]
 pub struct A64PagingMetaData;
 
-impl const PagingMetaData for A64PagingMetaData {
+impl PagingMetaData for A64PagingMetaData {
     const LEVELS: usize = 4;
     const PA_MAX_BITS: usize = 48;
     const VA_MAX_BITS: usize = 48;

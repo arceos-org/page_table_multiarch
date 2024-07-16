@@ -6,7 +6,7 @@ use page_table_entry::x86_64::X64PTE;
 /// metadata of x86_64 page tables.
 pub struct X64PagingMetaData;
 
-impl const PagingMetaData for X64PagingMetaData {
+impl PagingMetaData for X64PagingMetaData {
     const LEVELS: usize = 4;
     const PA_MAX_BITS: usize = 52;
     const VA_MAX_BITS: usize = 48;

@@ -11,5 +11,5 @@ documentation = "https://docs.rs/page_table_multiarch"
 
 [dependencies]
 log = "0.4"
-memory_addr = "0.1"
-page_table_entry = { path = "../page_table_entry" }
+memory_addr = "0.2"
+page_table_entry = { path = "../page_table_entry", version = "0.1" }

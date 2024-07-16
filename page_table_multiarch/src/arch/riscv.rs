@@ -11,13 +11,13 @@ pub struct Sv39MetaData;
 #[derive(Clone, Copy)]
 pub struct Sv48MetaData;
 
-impl const PagingMetaData for Sv39MetaData {
+impl PagingMetaData for Sv39MetaData {
     const LEVELS: usize = 3;
     const PA_MAX_BITS: usize = 56;
     const VA_MAX_BITS: usize = 39;
 }
 
-impl const PagingMetaData for Sv48MetaData {
+impl PagingMetaData for Sv48MetaData {
     const LEVELS: usize = 4;
     const PA_MAX_BITS: usize = 56;
     const VA_MAX_BITS: usize = 48;
