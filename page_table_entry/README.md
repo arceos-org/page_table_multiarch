@@ -1,6 +1,8 @@
 # page_table_entry
 
 [![Crates.io](https://img.shields.io/crates/v/page_table_entry)](https://crates.io/crates/page_table_entry)
+[![Docs.rs](https://docs.rs/page_table_entry/badge.svg)](https://docs.rs/page_table_entry)
+[![CI](https://github.com/arceos-org/page_table_multiarch/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/arceos-org/page_table_multiarch/actions/workflows/ci.yml)
 
 This crate provides the definition of page table entry for various hardware
 architectures.
