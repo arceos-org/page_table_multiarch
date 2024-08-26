@@ -3,7 +3,7 @@ extern crate alloc;
 use crate::{GenericPTE, PagingHandler, PagingMetaData};
 use crate::{MappingFlags, PageSize, PagingError, PagingResult, TlbFlush, TlbFlushAll};
 use core::marker::PhantomData;
-use memory_addr::{PhysAddr, PAGE_SIZE_4K, MemoryAddr};
+use memory_addr::{MemoryAddr, PhysAddr, PAGE_SIZE_4K};
 
 const ENTRY_COUNT: usize = 512;
 
