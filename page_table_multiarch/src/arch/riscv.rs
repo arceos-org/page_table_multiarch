@@ -14,70 +14,55 @@ fn riscv_flush_tlb(vaddr: Option<memory_addr::VirtAddr>) {
     }
 }
 
-/// Page table metadata for RISC-V Sv-39 and Sv-48 page tables.
-///
-/// This trait is used to allow them to support both normal page tables and
-/// nested page tables.
-pub trait SvMetaData: Sync + Send {
-    type VirtAddr: memory_addr::MemoryAddr;
+/// A virtual address that can be used in RISC-V Sv39 and Sv48 page tables.
+pub trait SvVirtAddr: memory_addr::MemoryAddr + Send + Sync {
+    /// Flush the TLB.
+    fn flush_tlb(vaddr: Option<Self>);
+}
 
-    fn flush_tlb(vaddr: Option<Self::VirtAddr>);
+impl SvVirtAddr for memory_addr::VirtAddr {
+    #[inline]
+    fn flush_tlb(vaddr: Option<Self>) {
+        riscv_flush_tlb(vaddr.map(|vaddr| vaddr.into()))
+    }
 }
 
 /// Metadata of RISC-V Sv39 page tables.
-pub struct Sv39MetaData<M: SvMetaData> {
-    _virt_addr: core::marker::PhantomData<M>,
+pub struct Sv39MetaData<VA: SvVirtAddr> {
+    _virt_addr: core::marker::PhantomData<VA>,
 }
 
 /// Metadata of RISC-V Sv48 page tables.
-pub struct Sv48MetaData<M: SvMetaData> {
-    _virt_addr: core::marker::PhantomData<M>,
+pub struct Sv48MetaData<VA: SvVirtAddr> {
+    _virt_addr: core::marker::PhantomData<VA>,
 }
 
-impl<M: SvMetaData> PagingMetaData for Sv39MetaData<M> {
+impl<VA: SvVirtAddr> PagingMetaData for Sv39MetaData<VA> {
     const LEVELS: usize = 3;
     const PA_MAX_BITS: usize = 56;
     const VA_MAX_BITS: usize = 39;
-    type VirtAddr = M::VirtAddr;
+    type VirtAddr = VA;
 
     #[inline]
-    fn flush_tlb(vaddr: Option<M::VirtAddr>) {
-        M::flush_tlb(vaddr);
+    fn flush_tlb(vaddr: Option<VA>) {
+        <VA as SvVirtAddr>::flush_tlb(vaddr);
     }
 }
 
-impl<M: SvMetaData> PagingMetaData for Sv48MetaData<M> {
+impl<VA: SvVirtAddr> PagingMetaData for Sv48MetaData<VA> {
     const LEVELS: usize = 4;
     const PA_MAX_BITS: usize = 56;
     const VA_MAX_BITS: usize = 48;
-    type VirtAddr = M::VirtAddr;
+    type VirtAddr = VA;
 
     #[inline]
-    fn flush_tlb(vaddr: Option<M::VirtAddr>) {
-        M::flush_tlb(vaddr);
+    fn flush_tlb(vaddr: Option<VA>) {
+        <VA as SvVirtAddr>::flush_tlb(vaddr);
     }
 }
-
-/// Metadata for normal (`VirtAddr` to `PhysAddr`) Sv39/Sv48 page tables.
-pub struct NormalSvPageTable;
-
-impl SvMetaData for NormalSvPageTable {
-    type VirtAddr = memory_addr::VirtAddr;
-
-    #[inline]
-    fn flush_tlb(vaddr: Option<memory_addr::VirtAddr>) {
-        riscv_flush_tlb(vaddr)
-    }
-}
-
-/// Sv39 page table for some virtual address type and flush function.
-pub type Sv39PageTableGeneric<M, H> = PageTable64<Sv39MetaData<M>, Rv64PTE, H>;
-
-/// Sv48 page table for some virtual address type and flush function.
-pub type Sv48PageTableGeneric<M, H> = PageTable64<Sv48MetaData<M>, Rv64PTE, H>;
 
 /// Sv39: Page-Based 39-bit (3 levels) Virtual-Memory System.
-pub type Sv39PageTable<H> = Sv39PageTableGeneric<NormalSvPageTable, H>;
+pub type Sv39PageTable<H> = PageTable64<Sv39MetaData<memory_addr::VirtAddr>, Rv64PTE, H>;
 
 /// Sv48: Page-Based 48-bit (4 levels) Virtual-Memory System.
-pub type Sv48PageTable<H> = Sv48PageTableGeneric<NormalSvPageTable, H>;
+pub type Sv48PageTable<H> = PageTable64<Sv48MetaData<memory_addr::VirtAddr>, Rv64PTE, H>;
