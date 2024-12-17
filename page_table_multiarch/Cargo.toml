@@ -1,6 +1,6 @@
 [package]
 name = "page_table_multiarch"
-edition = "2021"
+edition = "2024"
 description = "Generic page table structures for various hardware architectures"
 documentation = "https://docs.rs/page_table_multiarch"
 version.workspace = true
