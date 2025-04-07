@@ -83,8 +83,22 @@ pub trait PagingMetaData: Sync + Send {
 pub trait PagingHandler: Sized {
     /// Request to allocate a 4K-sized physical frame.
     fn alloc_frame() -> Option<PhysAddr>;
+
+    /// Request to allocate a number of contiguous 4K-sized physical frames.
+    /// `align_pow2` must be a power of 2, and the returned region bound will be
+    /// aligned to it.
+    fn alloc_frames(count: usize, align_pow2: usize) -> Option<PhysAddr>;
+
     /// Request to free a allocated physical frame.
     fn dealloc_frame(paddr: PhysAddr);
+
+    /// Request to free a number of contiguous physical frames.
+    fn dealloc_frames(paddr: PhysAddr, count: usize) {
+        for i in 0..count {
+            Self::dealloc_frame(paddr.add(i * PageSize::Size4K as usize));
+        }
+    }
+
     /// Returns a virtual address that maps to the given physical address.
     ///
     /// Used to access the physical memory directly in page table implementation.
