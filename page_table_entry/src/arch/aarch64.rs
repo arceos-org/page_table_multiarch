@@ -158,9 +158,7 @@ impl From<MappingFlags> for DescriptorAttr {
         } else {
             Self::from_mem_attr(MemAttr::Normal)
         };
-        if flags.contains(MappingFlags::READ) {
-            attr |= Self::VALID;
-        }
+        attr |= Self::VALID;
         if !flags.contains(MappingFlags::WRITE) {
             attr |= Self::AP_RO;
         }
