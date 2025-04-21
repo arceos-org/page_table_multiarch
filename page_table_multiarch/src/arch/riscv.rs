@@ -1,7 +1,7 @@
 //! RISC-V specific page table structures.
 
-use core::fmt::{Debug, LowerHex};
 use crate::{PageTable64, PagingMetaData};
+use core::fmt::{Debug, LowerHex};
 use page_table_entry::riscv::Rv64PTE;
 
 #[inline]
