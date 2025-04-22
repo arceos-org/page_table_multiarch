@@ -1,6 +1,7 @@
 //! RISC-V specific page table structures.
 
 use crate::{PageTable64, PagingMetaData};
+use core::fmt::{Debug, LowerHex};
 use page_table_entry::riscv::Rv64PTE;
 
 #[inline]
@@ -15,7 +16,7 @@ fn riscv_flush_tlb(vaddr: Option<memory_addr::VirtAddr>) {
 }
 
 /// A virtual address that can be used in RISC-V Sv39 and Sv48 page tables.
-pub trait SvVirtAddr: memory_addr::MemoryAddr + Send + Sync {
+pub trait SvVirtAddr: memory_addr::MemoryAddr + Debug + LowerHex + Send + Sync {
     /// Flush the TLB.
     fn flush_tlb(vaddr: Option<Self>);
 }
