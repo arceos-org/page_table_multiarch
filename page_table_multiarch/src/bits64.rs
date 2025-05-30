@@ -368,7 +368,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H
         }
     }
 
-    pub fn is_dirty(&mut self, vaddr: M::VirtAddr) -> PagingResult<bool> {
+    pub fn is_dirty(&self, vaddr: M::VirtAddr) -> PagingResult<bool> {
         let (entry, _) = self.get_entry(vaddr)?;
         if !entry.is_present() {
             return Err(PagingError::NotMapped);
@@ -387,7 +387,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H
         Ok(())
     }
 
-    pub fn is_accessed(&mut self, vaddr: M::VirtAddr) -> PagingResult<bool> {
+    pub fn is_accessed(&self, vaddr: M::VirtAddr) -> PagingResult<bool> {
         let (entry, _) = self.get_entry(vaddr)?;
         if !entry.is_present() {
             return Err(PagingError::NotMapped);
