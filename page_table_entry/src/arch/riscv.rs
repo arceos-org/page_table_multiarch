@@ -122,6 +122,26 @@ impl GenericPTE for Rv64PTE {
     fn is_present(&self) -> bool {
         PTEFlags::from_bits_truncate(self.0 as usize).contains(PTEFlags::V)
     }
+    fn is_dirty(&self) -> bool {
+        PTEFlags::from_bits_truncate(self.0 as usize).contains(PTEFlags::D)
+    }
+    fn set_dirty(&mut self, dirty: bool) {
+        if dirty {
+            self.0 |= PTEFlags::D.bits() as u64;
+        } else {
+            self.0 &= !(PTEFlags::D.bits() as u64);
+        }
+    }
+    fn is_accessed(&self) -> bool {
+        PTEFlags::from_bits_truncate(self.0 as usize).contains(PTEFlags::A)
+    }
+    fn set_accessed(&mut self, accessed: bool) {
+        if accessed {
+            self.0 |= PTEFlags::A.bits() as u64;
+        } else {
+            self.0 &= !(PTEFlags::A.bits() as u64);
+        }
+    }
     fn is_huge(&self) -> bool {
         PTEFlags::from_bits_truncate(self.0 as usize).intersects(PTEFlags::R | PTEFlags::X)
     }

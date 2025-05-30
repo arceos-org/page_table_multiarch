@@ -168,6 +168,22 @@ impl GenericPTE for LA64PTE {
     fn is_present(&self) -> bool {
         PTEFlags::from_bits_truncate(self.0).contains(PTEFlags::P)
     }
+    fn is_dirty(&self) -> bool {
+        PTEFlags::from_bits_truncate(self.0).contains(PTEFlags::D)
+    }
+    fn set_dirty(&mut self, dirty: bool) {
+        if dirty {
+            self.0 |= PTEFlags::D.bits();
+        } else {
+            self.0 &= !PTEFlags::D.bits();
+        }
+    }
+    fn is_accessed(&self) -> bool {
+        true
+    }
+    fn set_accessed(&mut self, accessed: bool) {
+        return;
+    }
     fn is_huge(&self) -> bool {
         PTEFlags::from_bits_truncate(self.0).contains(PTEFlags::GH)
     }

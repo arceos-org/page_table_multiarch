@@ -3,6 +3,7 @@
 use aarch64_cpu::registers::MAIR_EL1;
 use core::fmt;
 use memory_addr::PhysAddr;
+use log::panic;
 
 use crate::{GenericPTE, MappingFlags};
 
@@ -241,6 +242,22 @@ impl GenericPTE for A64PTE {
     }
     fn is_present(&self) -> bool {
         DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::VALID)
+    }
+    fn is_dirty(&self) -> bool {
+        panic!("Unimplemented");
+    }
+    fn set_dirty(&mut self, dirty: bool) {
+        panic!("Unimplemented");
+    }
+    fn is_accessed(&self) -> bool {
+        DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::AF)
+    }
+    fn set_accessed(&mut self, accessed: bool) {
+        if accessed {
+            self.0 |= DescriptorAttr::AF.bits();
+        } else {
+            self.0 &= !DescriptorAttr::AF.bits();
+        }
     }
     fn is_huge(&self) -> bool {
         !DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::NON_BLOCK)
