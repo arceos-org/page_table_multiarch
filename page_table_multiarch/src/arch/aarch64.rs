@@ -24,7 +24,7 @@ impl PagingMetaData for A64PagingMetaData {
         unsafe {
             if let Some(vaddr) = vaddr {
                 // TLB Invalidate by VA, All ASID, EL1, Inner Shareable
-                asm!("tlbi vaae1is, {}; dsb sy; isb", in(reg) vaddr.as_usize())
+                asm!("tlbi vaae1is, {}; dsb sy; isb", in(reg) ((vaddr.as_usize() >> 12) & 0xFFFF_FFFF_FFFF))
             } else {
                 // TLB Invalidate by VMID, All at stage 1, EL1
                 asm!("tlbi vmalle1; dsb sy; isb")
