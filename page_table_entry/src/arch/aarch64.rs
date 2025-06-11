@@ -3,7 +3,6 @@
 use aarch64_cpu::registers::MAIR_EL1;
 use core::fmt;
 use memory_addr::PhysAddr;
-use log::panic;
 
 use crate::{GenericPTE, MappingFlags};
 
@@ -35,6 +34,8 @@ bitflags::bitflags! {
         const AF =          1 << 10;
         /// The not global bit.
         const NG =          1 << 11;
+        /// The dirty bit modifier.
+        const DBM =         1 << 51;
         /// Indicates that 16 adjacent translation table entries point to contiguous memory regions.
         const CONTIGUOUS =  1 <<  52;
         /// The Privileged execute-never field.
@@ -244,10 +245,14 @@ impl GenericPTE for A64PTE {
         DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::VALID)
     }
     fn is_dirty(&self) -> bool {
-        panic!("Unimplemented");
+        DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::DBM)
     }
     fn set_dirty(&mut self, dirty: bool) {
-        panic!("Unimplemented");
+        if accessed {
+            self.0 |= DescriptorAttr::DBM.bits();
+        } else {
+            self.0 &= !DescriptorAttr::DBM.bits();
+        }
     }
     fn is_accessed(&self) -> bool {
         DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::AF)
