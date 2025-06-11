@@ -248,7 +248,7 @@ impl GenericPTE for A64PTE {
         DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::DBM)
     }
     fn set_dirty(&mut self, dirty: bool) {
-        if accessed {
+        if dirty {
             self.0 |= DescriptorAttr::DBM.bits();
         } else {
             self.0 &= !DescriptorAttr::DBM.bits();
