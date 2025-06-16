@@ -60,6 +60,14 @@ pub trait GenericPTE: Debug + Clone + Copy + Sync + Send + Sized {
     fn is_unused(&self) -> bool;
     /// Returns whether this entry flag indicates present.
     fn is_present(&self) -> bool;
+    /// Returns whether this page has been written.
+    fn is_dirty(&self) -> bool;
+    /// Set the dirty bit of this entry.
+    fn set_dirty(&mut self, dirty: bool);
+    /// Returns whether this page has been accessed.
+    fn is_accessed(&self) -> bool;
+    /// Set the accessed bit of this entry.
+    fn set_accessed(&mut self, accessed: bool);
     /// For non-last level translation, returns whether this entry maps to a
     /// huge frame.
     fn is_huge(&self) -> bool;

@@ -34,6 +34,8 @@ bitflags::bitflags! {
         const AF =          1 << 10;
         /// The not global bit.
         const NG =          1 << 11;
+        /// The dirty bit modifier.
+        const DBM =         1 << 51;
         /// Indicates that 16 adjacent translation table entries point to contiguous memory regions.
         const CONTIGUOUS =  1 <<  52;
         /// The Privileged execute-never field.
@@ -241,6 +243,26 @@ impl GenericPTE for A64PTE {
     }
     fn is_present(&self) -> bool {
         DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::VALID)
+    }
+    fn is_dirty(&self) -> bool {
+        DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::DBM)
+    }
+    fn set_dirty(&mut self, dirty: bool) {
+        if dirty {
+            self.0 |= DescriptorAttr::DBM.bits();
+        } else {
+            self.0 &= !DescriptorAttr::DBM.bits();
+        }
+    }
+    fn is_accessed(&self) -> bool {
+        DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::AF)
+    }
+    fn set_accessed(&mut self, accessed: bool) {
+        if accessed {
+            self.0 |= DescriptorAttr::AF.bits();
+        } else {
+            self.0 &= !DescriptorAttr::AF.bits();
+        }
     }
     fn is_huge(&self) -> bool {
         !DescriptorAttr::from_bits_truncate(self.0).contains(DescriptorAttr::NON_BLOCK)
