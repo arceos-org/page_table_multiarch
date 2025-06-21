@@ -103,6 +103,26 @@ impl GenericPTE for X64PTE {
     fn is_present(&self) -> bool {
         PTF::from_bits_truncate(self.0).contains(PTF::PRESENT)
     }
+    fn is_dirty(&self) -> bool {
+        PTF::from_bits_truncate(self.0).contains(PTF::DIRTY)
+    }
+    fn set_dirty(&mut self, dirty: bool) {
+        if dirty {
+            self.0 |= PTF::DIRTY.bits();
+        } else {
+            self.0 &= !PTF::DIRTY.bits();
+        }
+    }
+    fn is_accessed(&self) -> bool {
+        PTF::from_bits_truncate(self.0).contains(PTF::ACCESSED)
+    }
+    fn set_accessed(&mut self, accessed: bool) {
+        if accessed {
+            self.0 |= PTF::ACCESSED.bits();
+        } else {
+            self.0 &= !PTF::ACCESSED.bits();
+        }
+    }
     fn is_huge(&self) -> bool {
         PTF::from_bits_truncate(self.0).contains(PTF::HUGE_PAGE)
     }
