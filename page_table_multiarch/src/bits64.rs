@@ -100,6 +100,26 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H
         Ok((size, TlbFlush::new(vaddr)))
     }
 
+    /// Remap the mapping starts with `vaddr`, updates both the physical address
+    /// and flags.
+    ///
+    /// Returns the page size of the mapping.
+    ///
+    /// Returns [`Err(PagingError::NotMapped)`](PagingError::NotMapped) if the
+    /// intermediate level tables of the mapping is not present.
+    pub fn remap(
+        &mut self,
+        vaddr: M::VirtAddr,
+        paddr: PhysAddr,
+        flags: MappingFlags,
+    ) -> PagingResult<PageSize> {
+        let (entry, size) = self.get_entry_mut(vaddr)?;
+        entry.set_paddr(paddr);
+        entry.set_flags(flags, size.is_huge());
+        M::flush_tlb(Some(vaddr));
+        Ok(size)
+    }
+
     /// Updates the flags of the mapping starts with `vaddr`.
     ///
     /// Returns the page size of the mapping.
