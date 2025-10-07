@@ -12,6 +12,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "axerrno"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66ccd41dd4ef364e2385901a5c2a3adea974a41eccb2529c1f24e4c8bc93d834"
+dependencies = [
+ "log",
+]
+
+[[package]]
 name = "bit_field"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -73,6 +82,7 @@ dependencies = [
 name = "page_table_multiarch"
 version = "0.5.5"
 dependencies = [
+ "axerrno",
  "bitmaps",
  "log",
  "memory_addr",
