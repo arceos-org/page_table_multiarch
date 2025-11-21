@@ -1,6 +1,5 @@
 //! AArch64 VMSAv8-64 translation table format descriptors.
 
-use aarch64_cpu::registers::MAIR_EL1;
 use core::fmt;
 use memory_addr::PhysAddr;
 
@@ -99,16 +98,20 @@ impl DescriptorAttr {
 impl MemAttr {
     /// The MAIR_ELx register should be set to this value to match the memory
     /// attributes in the descriptors.
-    pub const MAIR_VALUE: u64 = {
-        // Device-nGnRE memory
-        let attr0 = MAIR_EL1::Attr0_Device::nonGathering_nonReordering_EarlyWriteAck.value;
-        // Normal memory
-        let attr1 = MAIR_EL1::Attr1_Normal_Inner::WriteBack_NonTransient_ReadWriteAlloc.value
-            | MAIR_EL1::Attr1_Normal_Outer::WriteBack_NonTransient_ReadWriteAlloc.value;
-        let attr2 = MAIR_EL1::Attr2_Normal_Inner::NonCacheable.value
-            + MAIR_EL1::Attr2_Normal_Outer::NonCacheable.value;
-        attr0 | attr1 | attr2 // 0x44_ff_04
-    };
+    ///
+    /// ```
+    /// # use aarch64_cpu::registers::MAIR_EL1;
+    /// # use page_table_entry::aarch64::MemAttr;
+    /// // Device-nGnRE memory
+    /// let attr0 = MAIR_EL1::Attr0_Device::nonGathering_nonReordering_EarlyWriteAck.value;
+    /// // Normal memory
+    /// let attr1 = MAIR_EL1::Attr1_Normal_Inner::WriteBack_NonTransient_ReadWriteAlloc.value
+    ///     | MAIR_EL1::Attr1_Normal_Outer::WriteBack_NonTransient_ReadWriteAlloc.value;
+    /// let attr2 = MAIR_EL1::Attr2_Normal_Inner::NonCacheable.value
+    ///     + MAIR_EL1::Attr2_Normal_Outer::NonCacheable.value;
+    /// assert_eq!(MemAttr::MAIR_VALUE, attr0 | attr1 | attr2);
+    /// ```
+    pub const MAIR_VALUE: u64 = 0x44_ff_04;
 }
 
 impl From<DescriptorAttr> for MappingFlags {

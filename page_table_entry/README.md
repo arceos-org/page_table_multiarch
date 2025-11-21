@@ -27,7 +27,6 @@ methods for manipulating various page table entries.
 
 ```rust
 use memory_addr::PhysAddr;
-use x86_64::structures::paging::page_table::PageTableFlags;
 use page_table_entry::{GenericPTE, MappingFlags, x86_64::X64PTE};
 
 let paddr = PhysAddr::from(0x233000);

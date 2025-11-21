@@ -15,15 +15,14 @@ rust-version.workspace = true
 [features]
 arm-el2 = []
 
+all = []
+
 [dependencies]
 bitflags = "2.9"
 memory_addr.workspace = true
 
-[target.'cfg(any(target_arch = "aarch64", doc))'.dependencies]
+[dev-dependencies]
 aarch64-cpu = "10.0"
 
-[target.'cfg(any(target_arch = "x86_64", doc))'.dependencies]
-x86_64 = "0.15.2"
-
 [package.metadata.docs.rs]
-rustc-args = ["--cfg", "doc"]
+all-features = true

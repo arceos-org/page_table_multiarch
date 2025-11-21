@@ -14,6 +14,7 @@ impl PagingMetaData for X64PagingMetaData {
 
     #[inline]
     fn flush_tlb(vaddr: Option<memory_addr::VirtAddr>) {
+        #[cfg(target_arch = "x86_64")]
         unsafe {
             if let Some(vaddr) = vaddr {
                 x86::tlb::flush(vaddr.into());
@@ -21,6 +22,8 @@ impl PagingMetaData for X64PagingMetaData {
                 x86::tlb::flush_all();
             }
         }
+        #[cfg(not(target_arch = "x86_64"))]
+        let _ = vaddr;
     }
 }
 
