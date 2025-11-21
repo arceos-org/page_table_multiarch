@@ -12,14 +12,11 @@ pub trait SvVirtAddr: memory_addr::MemoryAddr + Send + Sync {
 impl SvVirtAddr for memory_addr::VirtAddr {
     #[inline]
     fn flush_tlb(vaddr: Option<Self>) {
-        #[cfg(any(target_arch = "riscv32", target_arch = "riscv64"))]
         if let Some(vaddr) = vaddr {
             riscv::asm::sfence_vma(0, vaddr.as_usize())
         } else {
             riscv::asm::sfence_vma_all();
         }
-        #[cfg(not(any(target_arch = "riscv32", target_arch = "riscv64")))]
-        let _ = vaddr;
     }
 }
 
