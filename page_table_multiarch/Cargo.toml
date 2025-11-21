@@ -16,7 +16,7 @@ rust-version.workspace = true
 default = []
 copy-from = ["dep:bitmaps"]
 
-all = ["page_table_entry/all", "dep:riscv", "dep:x86_64"]
+all = ["page_table_entry/all"]
 
 [dependencies]
 log = "0.4"
@@ -25,11 +25,10 @@ page_table_entry.workspace = true
 bitmaps = { version = "3.2", default-features = false, optional = true }
 
 # Target-specific dependencies
-riscv = { version = "0.14", default-features = false, optional = true }
-x86_64 = { version = "0.15", optional = true }
-
 [target.'cfg(target_arch = "x86_64")'.dependencies]
-x86_64 = "0.15"
+x86_64 = { version = "0.15", default-features = false, features = [
+    "instructions",
+] }
 
 [target.'cfg(any(target_arch = "riscv32", target_arch = "riscv64"))'.dependencies]
 riscv = { version = "0.14", default-features = false }
