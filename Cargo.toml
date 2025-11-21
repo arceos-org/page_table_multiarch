@@ -17,4 +17,7 @@ rust-version = "1.85"
 
 [workspace.dependencies]
 memory_addr = "0.4"
-page_table_entry = { path = "page_table_entry", version = "0.5" }
+page_table_entry = "0.5"
+
+[patch.crates-io]
+page_table_entry = { path = "./page_table_entry" }
