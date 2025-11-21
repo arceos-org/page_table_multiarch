@@ -107,7 +107,7 @@ impl MemAttr {
             | MAIR_EL1::Attr1_Normal_Outer::WriteBack_NonTransient_ReadWriteAlloc.value;
         let attr2 = MAIR_EL1::Attr2_Normal_Inner::NonCacheable.value
             + MAIR_EL1::Attr2_Normal_Outer::NonCacheable.value;
-        attr0 | attr1 | attr2
+        attr0 | attr1 | attr2 // 0x44_ff_04
     };
 }
 
