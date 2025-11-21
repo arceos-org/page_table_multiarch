@@ -1,7 +1,6 @@
 //! LoongArch64 specific page table structures.
 
 use crate::{PageTable64, PagingMetaData};
-use core::arch::asm;
 use page_table_entry::loongarch64::LA64PTE;
 
 /// Metadata of LoongArch64 page tables.
@@ -48,6 +47,7 @@ impl PagingMetaData for LA64MetaData {
 
     #[inline]
     fn flush_tlb(vaddr: Option<memory_addr::VirtAddr>) {
+        #[cfg(target_arch = "loongarch64")]
         unsafe {
             if let Some(vaddr) = vaddr {
                 // <https://loongson.github.io/LoongArch-Documentation/LoongArch-Vol1-EN.html#_dbar>
@@ -66,11 +66,16 @@ impl PagingMetaData for LA64MetaData {
                 //
                 // When the operation indicated by op does not require an ASID, the
                 // general register rj should be set to r0.
-                asm!("dbar 0; invtlb 0x05, $r0, {reg}", reg = in(reg) vaddr.as_usize());
+                core::arch::asm!("dbar 0; invtlb 0x05, $r0, {reg}", reg = in(reg) vaddr.as_usize());
             } else {
                 // op 0x0: Clear all page table entries
-                asm!("dbar 0; invtlb 0x00, $r0, $r0");
+                core::arch::asm!("dbar 0; invtlb 0x00, $r0, $r0");
             }
+        }
+        #[cfg(not(target_arch = "loongarch64"))]
+        {
+            let _ = vaddr;
+            unimplemented!()
         }
     }
 }

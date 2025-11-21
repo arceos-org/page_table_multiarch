@@ -21,7 +21,10 @@ impl PagingMetaData for X64PagingMetaData {
             x86_64::instructions::tlb::flush_all();
         }
         #[cfg(not(target_arch = "x86_64"))]
-        let _ = vaddr;
+        {
+            let _ = vaddr;
+            unimplemented!()
+        }
     }
 }
 

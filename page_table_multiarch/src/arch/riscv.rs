@@ -19,7 +19,10 @@ impl SvVirtAddr for memory_addr::VirtAddr {
             riscv::asm::sfence_vma_all();
         }
         #[cfg(not(any(target_arch = "riscv32", target_arch = "riscv64")))]
-        let _ = vaddr;
+        {
+            let _ = vaddr;
+            unimplemented!()
+        }
     }
 }
 

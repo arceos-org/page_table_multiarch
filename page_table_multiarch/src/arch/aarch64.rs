@@ -1,6 +1,5 @@
 //! AArch64 specific page table structures.
 
-use core::arch::asm;
 use page_table_entry::aarch64::A64PTE;
 
 use crate::{PageTable64, PagingMetaData};
@@ -21,15 +20,21 @@ impl PagingMetaData for A64PagingMetaData {
 
     #[inline]
     fn flush_tlb(vaddr: Option<memory_addr::VirtAddr>) {
+        #[cfg(target_arch = "aarch64")]
         unsafe {
             if let Some(vaddr) = vaddr {
                 // TLB Invalidate by VA, All ASID, EL1, Inner Shareable
                 const VA_MASK: usize = (1 << 44) - 1; // VA[55:12] => bits[43:0]
-                asm!("tlbi vaae1is, {}; dsb sy; isb", in(reg) ((vaddr.as_usize() >> 12) & VA_MASK))
+                core::arch::asm!("tlbi vaae1is, {}; dsb sy; isb", in(reg) ((vaddr.as_usize() >> 12) & VA_MASK))
             } else {
                 // TLB Invalidate by VMID, All at stage 1, EL1
-                asm!("tlbi vmalle1; dsb sy; isb")
+                core::arch::asm!("tlbi vmalle1; dsb sy; isb")
             }
+        }
+        #[cfg(not(target_arch = "aarch64"))]
+        {
+            let _ = vaddr;
+            unimplemented!()
         }
     }
 }
