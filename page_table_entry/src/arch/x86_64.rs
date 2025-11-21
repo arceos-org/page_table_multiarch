@@ -2,7 +2,8 @@
 
 use core::fmt;
 use memory_addr::PhysAddr;
-use x86_64::structures::paging::page_table::PageTableFlags as PTF;
+
+pub use x86_64::structures::paging::page_table::PageTableFlags as PTF;
 
 use crate::{GenericPTE, MappingFlags};
 
