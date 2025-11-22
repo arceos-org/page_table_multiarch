@@ -1,5 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 #![cfg_attr(doc, feature(doc_auto_cfg))]
+#![feature(new_range_api)]
 #![doc = include_str!("../README.md")]
 
 #[macro_use]
@@ -8,12 +9,16 @@ extern crate log;
 mod arch;
 mod bits64;
 
+mod eqbits64;
+
 use core::{fmt::Debug, marker::PhantomData};
 
 use memory_addr::{MemoryAddr, PhysAddr, VirtAddr};
 
 pub use self::arch::*;
 pub use self::bits64::PageTable64;
+
+pub use self::eqbits64::EqPageTable64Ext;
 
 #[doc(no_inline)]
 pub use page_table_entry::{GenericPTE, MappingFlags};

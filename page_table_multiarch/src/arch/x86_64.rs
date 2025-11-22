@@ -26,3 +26,7 @@ impl PagingMetaData for X64PagingMetaData {
 
 /// x86_64 page table.
 pub type X64PageTable<H> = PageTable64<X64PagingMetaData, X64PTE, H>;
+
+/// A x86_64 page table with extended functionalities.
+pub type X64PageTableExt<H, SH = H> =
+    crate::eqbits64::EqPageTable64Ext<X64PagingMetaData, X64PTE, H, SH>;
