@@ -5,7 +5,7 @@ use memory_addr::{AddrRange, MemoryAddr, PAGE_SIZE_4K, PhysAddr};
 
 const ENTRY_COUNT: usize = 512;
 
-const P4E_ADDR_RANGE: usize = 2 << 39;
+const P4E_ADDR_RANGE: usize = 1 << 39; // 512GB
 
 const fn p4_index(vaddr: usize) -> usize {
     (vaddr >> (12 + 27)) & (ENTRY_COUNT - 1)
@@ -508,6 +508,10 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
         };
 
         let vaddr: usize = vaddr.into();
+
+        // if shared_pt {
+        //     info!("vaddr: {:#x?} is in shared pt", vaddr);
+        // }
         let p3 = if M::LEVELS == 3 {
             self.table_of_mut(self.root_paddr())
         } else if M::LEVELS == 4 {
