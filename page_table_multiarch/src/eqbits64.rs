@@ -35,6 +35,7 @@ pub struct EqPageTable64Ext<
 > {
     root_paddr: PhysAddr,
     shared_vaddr_range: Option<AddrRange<M::VirtAddr>>,
+    shared_vaddr_pgdir_initialized: bool,
     _phantom: PhantomData<(M, PTE, H, SH)>,
 }
 
@@ -70,8 +71,58 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
         Ok(Self {
             root_paddr,
             shared_vaddr_range,
+            shared_vaddr_pgdir_initialized: false,
             _phantom: PhantomData,
         })
+    }
+
+    /// Initialize the P4E entries for the shared virtual address range,
+    /// this function should be called before forking this process.
+    fn init_shared_vaddr_range_pgdir(&mut self) -> PagingResult<()> {
+        let range = if let Some(range) = &self.shared_vaddr_range {
+            range
+        } else {
+            return Ok(());
+        };
+
+        if M::LEVELS == 3 {
+            error!(
+                "shared_vaddr_range {:?} is not supported in 3-level page table",
+                range
+            );
+            return Err(PagingError::NotAligned);
+        }
+
+        let start_vaddr = range.start;
+        let end_vaddr = range.end;
+        if !start_vaddr.is_aligned(P4E_ADDR_RANGE) || !end_vaddr.is_aligned(P4E_ADDR_RANGE) {
+            error!(
+                "shared_vaddr_range {:?} is not aligned to {:#x}",
+                range, P4E_ADDR_RANGE
+            );
+            return Err(PagingError::NotAligned);
+        }
+
+        let mut vaddr = start_vaddr.into();
+
+        while vaddr < end_vaddr.into() {
+            let p4 = self.table_of_mut(self.root_paddr());
+            let index = p4_index(vaddr);
+            let p4e = &mut p4[index];
+
+            // Prefill the P4E, allocate the physical frame for the next level page table.
+            // Because the PGDIR frame will be copied during fork, while the next level
+            // page table is shared among processes.
+            let _p3e = self.next_table_mut_or_create(p4e, true)?;
+
+            info!("Prefilled P4E[{index}] for vaddr {:#x}", vaddr);
+
+            vaddr = vaddr.add(P4E_ADDR_RANGE);
+        }
+
+        self.shared_vaddr_pgdir_initialized = true;
+
+        Ok(())
     }
 
     /// Returns the physical address of the root page table.
@@ -506,6 +557,10 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
         } else {
             false
         };
+
+        if shared_pt && !self.shared_vaddr_pgdir_initialized {
+            self.init_shared_vaddr_range_pgdir()?;
+        }
 
         let vaddr: usize = vaddr.into();
 
