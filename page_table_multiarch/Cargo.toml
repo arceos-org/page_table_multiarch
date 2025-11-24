@@ -17,6 +17,8 @@ default = []
 copy-from = ["dep:bitmaps"]
 
 [dependencies]
+arrayvec = { version = "0.7", default-features = false }
+axerrno = "0.1"
 log = "0.4"
 memory_addr.workspace = true
 page_table_entry.workspace = true
