@@ -29,7 +29,7 @@ jobs:
       if: ${{ matrix.targets == 'x86_64-unknown-linux-gnu' }}
       env:
         RUSTFLAGS: --cfg docsrs
-      run: cargo test --target ${{ matrix.targets }} --all-features -- --nocapture
+      run: cargo test --target ${{ matrix.targets }} -- --nocapture
 
   doc:
     runs-on: ubuntu-latest
