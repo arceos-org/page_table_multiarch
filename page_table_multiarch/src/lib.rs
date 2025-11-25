@@ -8,7 +8,7 @@ extern crate log;
 mod arch;
 mod bits64;
 
-use core::{fmt::Debug, marker::PhantomData};
+use core::{fmt::Debug, fmt::LowerHex, marker::PhantomData};
 
 use memory_addr::{MemoryAddr, PhysAddr, VirtAddr};
 
@@ -64,7 +64,7 @@ pub trait PagingMetaData: Sync + Send {
     ///
     /// This associated type allows more flexible use of page tables structs like [`PageTable64`],
     /// for example, to implement EPTs.
-    type VirtAddr: MemoryAddr;
+    type VirtAddr: MemoryAddr + Debug + LowerHex;
     // (^)it can be converted from/to usize and it's trivially copyable
 
     /// Whether a given physical address is valid.
