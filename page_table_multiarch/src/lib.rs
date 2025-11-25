@@ -8,15 +8,16 @@ extern crate log;
 mod arch;
 mod bits64;
 
-use core::{fmt::Debug, marker::PhantomData};
+use core::fmt::Debug;
 
 use memory_addr::{MemoryAddr, PhysAddr, VirtAddr};
-
-pub use self::arch::*;
-pub use self::bits64::PageTable64;
-
 #[doc(no_inline)]
 pub use page_table_entry::{GenericPTE, MappingFlags};
+
+pub use self::{
+    arch::*,
+    bits64::{PageTable64, PageTable64Mut},
+};
 
 /// The error type for page table operation failures.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -62,8 +63,8 @@ pub trait PagingMetaData: Sync + Send {
 
     /// The virtual address to be translated in this page table.
     ///
-    /// This associated type allows more flexible use of page tables structs like [`PageTable64`],
-    /// for example, to implement EPTs.
+    /// This associated type allows more flexible use of page tables structs
+    /// like [`PageTable64`], for example, to implement EPTs.
     type VirtAddr: MemoryAddr;
     // (^)it can be converted from/to usize and it's trivially copyable
 
@@ -83,8 +84,8 @@ pub trait PagingMetaData: Sync + Send {
 
     /// Flushes the TLB.
     ///
-    /// If `vaddr` is [`None`], flushes the entire TLB. Otherwise, flushes the TLB
-    /// entry at the given virtual address.
+    /// If `vaddr` is [`None`], flushes the entire TLB. Otherwise, flushes the
+    /// TLB entry at the given virtual address.
     fn flush_tlb(vaddr: Option<Self::VirtAddr>);
 }
 
@@ -97,7 +98,8 @@ pub trait PagingHandler: Sized {
     fn dealloc_frame(paddr: PhysAddr);
     /// Returns a virtual address that maps to the given physical address.
     ///
-    /// Used to access the physical memory directly in page table implementation.
+    /// Used to access the physical memory directly in page table
+    /// implementation.
     fn phys_to_virt(paddr: PhysAddr) -> VirtAddr;
 }
 
@@ -134,49 +136,5 @@ impl From<PageSize> for usize {
     #[inline]
     fn from(size: PageSize) -> usize {
         size as usize
-    }
-}
-
-/// This type indicates the mapping of a virtual address has been changed.
-///
-/// The caller can call [`TlbFlush::flush`] to flush TLB entries related to
-/// the given virtual address, or call [`TlbFlush::ignore`] if it knowns the
-/// TLB will be flushed later.
-#[must_use]
-pub struct TlbFlush<M: PagingMetaData>(M::VirtAddr, PhantomData<M>);
-
-impl<M: PagingMetaData> TlbFlush<M> {
-    pub(crate) const fn new(vaddr: M::VirtAddr) -> Self {
-        Self(vaddr, PhantomData)
-    }
-
-    /// Don't flush the TLB and silence the “must be used” warning.
-    pub fn ignore(self) {}
-
-    /// Flush the the TLB by the given virtual address to ensure the mapping
-    /// changes take effect.
-    pub fn flush(self) {
-        M::flush_tlb(Some(self.0))
-    }
-}
-
-/// This type indicates the page table mappings have been changed.
-///
-/// The caller can call [`TlbFlushAll::flush_all`] to flush the entire TLB, or call
-/// [`TlbFlushAll::ignore`] if it knowns the TLB will be flushed later.
-#[must_use]
-pub struct TlbFlushAll<M: PagingMetaData>(PhantomData<M>);
-
-impl<M: PagingMetaData> TlbFlushAll<M> {
-    pub(crate) const fn new() -> Self {
-        Self(PhantomData)
-    }
-
-    /// Don't flush the TLB and silence the “must be used” warning.
-    pub fn ignore(self) {}
-
-    /// Flush the entire TLB.
-    pub fn flush_all(self) {
-        M::flush_tlb(None)
     }
 }

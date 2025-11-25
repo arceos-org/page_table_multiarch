@@ -66,6 +66,6 @@ let flags = MappingFlags::READ | MappingFlags::WRITE;
 let mut pt = X64PageTable::<PagingHandlerImpl>::try_new().unwrap();
 
 assert!(pt.root_paddr().is_aligned_4k());
-assert!(pt.map(vaddr, paddr, PageSize::Size4K, flags).is_ok());
+assert!(pt.modify().map(vaddr, paddr, PageSize::Size4K, flags).is_ok());
 assert_eq!(pt.query(vaddr), Ok((paddr, flags, PageSize::Size4K)));
 ```

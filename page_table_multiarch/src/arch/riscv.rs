@@ -3,7 +3,7 @@
 use memory_addr::VirtAddr;
 use page_table_entry::riscv::Rv64PTE;
 
-use crate::{PageTable64, PagingMetaData};
+use crate::{PageTable64, PageTable64Mut, PagingMetaData};
 
 /// A virtual address that can be used in RISC-V Sv39 and Sv48 page tables.
 pub trait SvVirtAddr: memory_addr::MemoryAddr + Send + Sync {
@@ -58,6 +58,10 @@ impl<VA: SvVirtAddr> PagingMetaData for Sv48MetaData<VA> {
 
 /// Sv39: Page-Based 39-bit (3 levels) Virtual-Memory System.
 pub type Sv39PageTable<H> = PageTable64<Sv39MetaData<VirtAddr>, Rv64PTE, H>;
+/// Mutable reference to a RISC-V Sv39 page table.
+pub type Sv39PageTableMut<'a, H> = PageTable64Mut<'a, Sv39MetaData<VirtAddr>, Rv64PTE, H>;
 
 /// Sv48: Page-Based 48-bit (4 levels) Virtual-Memory System.
 pub type Sv48PageTable<H> = PageTable64<Sv48MetaData<VirtAddr>, Rv64PTE, H>;
+/// Mutable reference to a RISC-V Sv48 page table.
+pub type Sv48PageTableMut<'a, H> = PageTable64Mut<'a, Sv48MetaData<VirtAddr>, Rv64PTE, H>;
