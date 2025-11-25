@@ -1,7 +1,11 @@
-use crate::{GenericPTE, PagingHandler, PagingMetaData};
-use crate::{MappingFlags, PageSize, PagingError, PagingResult, TlbFlush, TlbFlushAll};
 use core::marker::PhantomData;
+
 use memory_addr::{MemoryAddr, PAGE_SIZE_4K, PhysAddr};
+
+use crate::{
+    GenericPTE, MappingFlags, PageSize, PagingError, PagingHandler, PagingMetaData, PagingResult,
+    TlbFlush, TlbFlushAll,
+};
 
 const ENTRY_COUNT: usize = 512;
 

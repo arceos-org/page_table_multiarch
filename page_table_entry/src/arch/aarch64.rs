@@ -1,7 +1,8 @@
 //! AArch64 VMSAv8-64 translation table format descriptors.
 
-use aarch64_cpu::registers::MAIR_EL1;
 use core::fmt;
+
+use aarch64_cpu::registers::MAIR_EL1;
 use memory_addr::PhysAddr;
 
 use crate::{GenericPTE, MappingFlags};

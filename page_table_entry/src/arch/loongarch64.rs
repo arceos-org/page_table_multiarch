@@ -4,9 +4,11 @@
 //!
 //! <https://loongson.github.io/LoongArch-Documentation/LoongArch-Vol1-EN.html#section-multi-level-page-table-structure-supported-by-page-walking>
 
-use crate::{GenericPTE, MappingFlags};
 use core::fmt;
+
 use memory_addr::PhysAddr;
+
+use crate::{GenericPTE, MappingFlags};
 
 bitflags::bitflags! {
     /// Page-table entry flags.

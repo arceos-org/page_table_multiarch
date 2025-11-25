@@ -1,6 +1,7 @@
 //! RISC-V page table entries.
 
 use core::fmt;
+
 use memory_addr::PhysAddr;
 
 use crate::{GenericPTE, MappingFlags};

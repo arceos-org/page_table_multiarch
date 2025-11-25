@@ -1,6 +1,7 @@
 //! x86 page table entries on 64-bit paging.
 
 use core::fmt;
+
 use memory_addr::PhysAddr;
 
 pub use x86_64::structures::paging::page_table::PageTableFlags as PTF;
