@@ -635,7 +635,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler> Dr
     for EqPageTable64Ext<M, PTE, H, SH>
 {
     fn drop(&mut self) {
-        warn!("Dropping page table @ {:#x}", self.root_paddr());
+        debug!("Dropping EqPageTable64Ext page table @ {:#x}", self.root_paddr());
 
         // don't free the entries in last level, they are not array.
         let _ = self.walk(
