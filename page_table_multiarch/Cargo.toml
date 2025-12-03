@@ -16,6 +16,7 @@ rust-version.workspace = true
 log = "0.4"
 memory_addr = "0.3"
 page_table_entry = { path = "../page_table_entry", version = "0.5.2" }
+bitmaps = { version = "3.2", default-features = false }
 
 [target.'cfg(any(target_arch = "x86_64", doc))'.dependencies]
 x86 = "0.52"
