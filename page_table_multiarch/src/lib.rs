@@ -138,3 +138,12 @@ impl From<PageSize> for usize {
         size as usize
     }
 }
+
+#[cfg(feature = "smp")]
+#[crate_interface::def_interface]
+pub trait TlbFlushIf {
+    fn flush_local(vaddr: Option<VirtAddr>);
+    // flush tlb on specified cpus
+    fn flush_on(cpu_bitmap: usize, vaddr: Option<VirtAddr>);
+    fn flush_all(vaddr: Option<VirtAddr>);
+}
