@@ -553,7 +553,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H
 
 impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> Drop for PageTable64<M, PTE, H> {
     fn drop(&mut self) {
-        warn!("Dropping page table @ {:#x}", self.root_paddr());
+        // warn!("Dropping page table @ {:#x}", self.root_paddr());
 
         // // don't free the entries in last level, they are not array.
         // let _ = self.walk(

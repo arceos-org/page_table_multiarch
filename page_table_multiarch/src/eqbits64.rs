@@ -113,7 +113,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
             // Prefill the P4E, allocate the physical frame for the next level page table.
             // Because the PGDIR frame will be copied during fork, while the next level
             // page table is shared among processes.
-            let _p3e = self.next_table_mut_or_create(p4e, true)?;
+            let _p3e = self.next_table_mut_or_create(vaddr, p4e, true)?;
 
             info!("Prefilled P4E[{index}] for vaddr {:#x}", vaddr);
 
@@ -493,11 +493,15 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
 
     fn next_table_mut_or_create<'a>(
         &mut self,
+        vaddr: usize, // Just for debug info.
         entry: &mut PTE,
         shared_pt: bool,
     ) -> PagingResult<&'a mut [PTE]> {
         if entry.is_unused() {
             let paddr = Self::alloc_table(shared_pt)?;
+            if !shared_pt {
+                trace!("allow pt frame for vaddr {:#x} at {:?}", vaddr, paddr);
+            }
             *entry = GenericPTE::new_table(paddr);
             Ok(self.table_of_mut(paddr))
         } else {
@@ -565,7 +569,10 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
         page_size: PageSize,
     ) -> PagingResult<&mut PTE> {
         let shared_pt = if let Some(range) = &self.shared_vaddr_range {
-            range.contains(vaddr)
+            // These address are total hack, should be defined in a better way.
+            // 0x5000_0000_0000: `USER_MMAP_BASE_HINT`, Junction will only allocate address below this for user,
+            // 0x200000: the low memory region used by Junction.
+            vaddr.into() >= 0x5000_0000_0000 || range.contains(vaddr) || vaddr.into() < 0x200000
         } else {
             false
         };
@@ -573,7 +580,6 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
         if shared_pt && !self.shared_vaddr_pgdir_initialized {
             self.init_shared_vaddr_range_pgdir()?;
         }
-
         let vaddr: usize = vaddr.into();
 
         // if shared_pt {
@@ -584,7 +590,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
         } else if M::LEVELS == 4 {
             let p4 = self.table_of_mut(self.root_paddr());
             let p4e = &mut p4[p4_index(vaddr)];
-            self.next_table_mut_or_create(p4e, shared_pt)?
+            self.next_table_mut_or_create(vaddr, p4e, shared_pt)?
         } else {
             unreachable!()
         };
@@ -593,13 +599,13 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
             return Ok(p3e);
         }
 
-        let p2 = self.next_table_mut_or_create(p3e, shared_pt)?;
+        let p2 = self.next_table_mut_or_create(vaddr, p3e, shared_pt)?;
         let p2e = &mut p2[p2_index(vaddr)];
         if page_size == PageSize::Size2M {
             return Ok(p2e);
         }
 
-        let p1 = self.next_table_mut_or_create(p2e, shared_pt)?;
+        let p1 = self.next_table_mut_or_create(vaddr, p2e, shared_pt)?;
         let p1e = &mut p1[p1_index(vaddr)];
         Ok(p1e)
     }
@@ -647,7 +653,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler> Dr
     for EqPageTable64Ext<M, PTE, H, SH>
 {
     fn drop(&mut self) {
-        warn!("Dropping page table @ {:#x}", self.root_paddr());
+        // warn!("Dropping page table @ {:#x}", self.root_paddr());
 
         // don't free the entries in last level, they are not array.
         let _ = self.walk(
