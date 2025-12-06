@@ -6,6 +6,7 @@
 extern crate log;
 
 mod arch;
+mod bits32;
 mod bits64;
 
 use core::{fmt::Debug, marker::PhantomData};
@@ -13,6 +14,7 @@ use core::{fmt::Debug, marker::PhantomData};
 use memory_addr::{MemoryAddr, PhysAddr, VirtAddr};
 
 pub use self::arch::*;
+pub use self::bits32::PageTable32;
 pub use self::bits64::PageTable64;
 
 #[doc(no_inline)]
@@ -107,6 +109,8 @@ pub trait PagingHandler: Sized {
 pub enum PageSize {
     /// Size of 4 kilobytes (2<sup>12</sup> bytes).
     Size4K = 0x1000,
+    /// Size of 1 megabytes (2<sup>20</sup> bytes). Used by ARMv7-A.
+    Size1M = 0x10_0000,
     /// Size of 2 megabytes (2<sup>21</sup> bytes).
     Size2M = 0x20_0000,
     /// Size of 1 gigabytes (2<sup>30</sup> bytes).
@@ -116,7 +120,7 @@ pub enum PageSize {
 impl PageSize {
     /// Whether this page size is considered huge (larger than 4K).
     pub const fn is_huge(self) -> bool {
-        matches!(self, Self::Size1G | Self::Size2M)
+        matches!(self, Self::Size1G | Self::Size2M | Self::Size1M)
     }
 
     /// Checks whether a given address or size is aligned to the page size.
