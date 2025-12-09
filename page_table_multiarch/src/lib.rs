@@ -1,5 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 #![cfg_attr(doc, feature(doc_cfg))]
+#![feature(stmt_expr_attributes)]
 #![doc = include_str!("../README.md")]
 
 #[macro_use]
@@ -7,11 +8,18 @@ extern crate log;
 
 mod arch;
 mod bits32;
+#[cfg(target_pointer_width = "64")]
 mod bits64;
 
 use core::fmt::Debug;
 
-use memory_addr::{MemoryAddr, PAGE_SIZE_4K, PhysAddr, VirtAddr};
+use memory_addr::{MemoryAddr, PhysAddr, VirtAddr};
+
+pub use self::arch::*;
+pub use self::bits32::PageTable32;
+#[cfg(target_pointer_width = "64")]
+pub use self::bits64::PageTable64;
+
 #[doc(no_inline)]
 pub use page_table_entry::{GenericPTE, MappingFlags};
 
@@ -102,12 +110,42 @@ pub trait PagingHandler: Sized {
     /// a multiple of 4K).
     fn alloc_frames(num: usize, align: usize) -> Option<PhysAddr>;
     /// Request to free a allocated physical frame.
-    fn dealloc_frame(paddr: PhysAddr) {
-        Self::dealloc_frames(paddr, 1)
+    fn dealloc_frame(paddr: PhysAddr);
+    
+    /// Request to allocate contiguous physical frames with specified alignment.
+    ///
+    /// This is used for allocating page tables that require multiple pages or
+    /// specific alignment (e.g., ARMv7-A L1 page table needs 16KB with 16KB alignment).
+    ///
+    /// # Arguments
+    ///
+    /// * `num_pages` - Number of 4K pages to allocate
+    /// * `align_pow2` - Alignment requirement in bytes (must be power of 2)
+    ///
+    /// Default implementation falls back to `alloc_frame()` for single 4K page.
+    fn alloc_frame_contiguous(num_pages: usize, align_pow2: usize) -> Option<PhysAddr> {
+        if num_pages == 1 && align_pow2 <= memory_addr::PAGE_SIZE_4K {
+            Self::alloc_frame()
+        } else {
+            None // Subclasses should override this for multi-page allocation
+        }
     }
-    /// Free `num` contiguous physical frames starting from the given physical
-    /// address. The `num` must be the same as that used in allocation.
-    fn dealloc_frames(paddr: PhysAddr, num: usize);
+    
+    /// Request to free contiguous physical frames.
+    ///
+    /// # Arguments
+    ///
+    /// * `paddr` - Physical address of the first frame
+    /// * `num_pages` - Number of 4K pages to deallocate
+    ///
+    /// Default implementation falls back to `dealloc_frame()` for single page.
+    fn dealloc_frame_contiguous(paddr: PhysAddr, num_pages: usize) {
+        if num_pages == 1 {
+            Self::dealloc_frame(paddr);
+        }
+        // Subclasses should override this for multi-page deallocation
+    }
+    
     /// Returns a virtual address that maps to the given physical address.
     ///
     /// Used to access the physical memory directly in page table
