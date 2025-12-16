@@ -364,14 +364,26 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
         );
         while size > 0 {
             let vaddr = vaddr_usize.into();
-            let (page_size, tlb) = self
-                .protect(vaddr, flags)
-                .inspect_err(|e| error!("failed to protect page: {:#x?}, {:?}", vaddr_usize, e))?;
-            if flush_tlb_by_page {
-                tlb.flush();
-            } else {
-                tlb.ignore();
-            }
+            let page_size = match self.protect(vaddr, flags) {
+                Ok((page_size, tlb)) => {
+                    if flush_tlb_by_page {
+                        tlb.flush();
+                    } else {
+                        tlb.ignore();
+                    }
+                    page_size
+                }
+                // Allow skipping unmapped pages.
+                Err(PagingError::NotMapped) => PageSize::Size4K,
+                Err(e) => {
+                    error!("failed to protect page: {:#x?}, {:?}", vaddr_usize, e);
+                    return Err(e);
+                }
+            };
+
+            // let (page_size, tlb) = self
+            //     .protect(vaddr, flags)
+            //     .inspect_err(|e| error!("failed to protect page: {:#x?}, {:?}", vaddr_usize, e))?;
 
             assert!(page_size.is_aligned(vaddr_usize));
             assert!(page_size as usize <= size);
