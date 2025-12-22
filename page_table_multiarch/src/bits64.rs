@@ -162,7 +162,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H
     /// if possible. Otherwise, it will map the region with 4K pages.
     ///
     /// When `flush_tlb_by_page` is true, it will flush the TLB immediately
-    /// after mapping each page. Otherwise, the TLB flush should by handledby
+    /// after mapping each page. Otherwise, the TLB flush should be handled by
     /// the caller.
     ///
     /// [`Err(PagingError::NotAligned)`]: PagingError::NotAligned
