@@ -1,7 +1,4 @@
-use core::{
-    marker::PhantomData,
-    ops::{Deref, DerefMut},
-};
+use core::{marker::PhantomData, ops::Deref};
 
 use arrayvec::ArrayVec;
 use memory_addr::{MemoryAddr, PAGE_SIZE_4K, PhysAddr};
@@ -58,7 +55,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H
         self.root_paddr
     }
 
-    /// Queries the result of the mapping starts with `vaddr`.
+    /// Queries the result of the mapping starting at `vaddr`.
     ///
     /// Returns the physical address of the target frame, mapping flags, and
     /// the page size.
@@ -274,14 +271,6 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> Deref
     }
 }
 
-impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> DerefMut
-    for PageTable64Cursor<'_, M, PTE, H>
-{
-    fn deref_mut(&mut self) -> &mut PageTable64<M, PTE, H> {
-        self.inner
-    }
-}
-
 impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor<'a, M, PTE, H> {
     fn new(inner: &'a mut PageTable64<M, PTE, H>) -> Self {
         Self {
@@ -309,7 +298,7 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
     /// Maps a virtual page to a physical frame with the given `page_size`
     /// and mapping `flags`.
     ///
-    /// The virtual page starts with `vaddr`, and the physical frame starts with
+    /// The virtual page starts at `vaddr`, and the physical frame starts at
     /// `target`. If the `target` is not aligned to the `page_size`, it will be
     /// aligned down automatically.
     ///
@@ -333,8 +322,8 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
         Ok(())
     }
 
-    /// Remap the mapping starts with `vaddr`, updates both the physical address
-    /// and flags.
+    /// Remaps the mapping starting at `vaddr`, updates both the physical
+    /// address and flags.
     ///
     /// Returns the page size of the mapping.
     ///
@@ -353,14 +342,14 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
         Ok(size)
     }
 
-    /// Updates the flags of the mapping starts with `vaddr`.
+    /// Updates the flags of the mapping starting at `vaddr`.
     ///
     /// Returns the page size of the mapping.
     ///
     /// Returns [`Err(PagingError::NotMapped)`](PagingError::NotMapped) if the
     /// mapping is not present.
     pub fn protect(&mut self, vaddr: M::VirtAddr, flags: MappingFlags) -> PagingResult<PageSize> {
-        let (entry, size) = self.get_entry_mut(vaddr)?;
+        let (entry, size) = self.inner.get_entry_mut(vaddr)?;
         if !entry.is_present() {
             return Err(PagingError::NotMapped);
         }
@@ -369,7 +358,7 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
         Ok(size)
     }
 
-    /// Unmaps the mapping starts with `vaddr`.
+    /// Unmaps the mapping starting at `vaddr`.
     ///
     /// Returns [`Err(PagingError::NotMapped)`](PagingError::NotMapped) if the
     /// mapping is not present.
@@ -377,7 +366,7 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
         &mut self,
         vaddr: M::VirtAddr,
     ) -> PagingResult<(PhysAddr, MappingFlags, PageSize)> {
-        let (entry, size) = self.get_entry_mut(vaddr)?;
+        let (entry, size) = self.inner.get_entry_mut(vaddr)?;
         if !entry.is_present() {
             entry.clear();
             return Err(PagingError::NotMapped);
@@ -392,7 +381,7 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
     /// Maps a contiguous virtual memory region to a contiguous physical memory
     /// region with the given mapping `flags`.
     ///
-    /// The virtual and physical memory regions start with `vaddr` and `paddr`
+    /// The virtual and physical memory regions start at `vaddr` and `paddr`
     /// respectively. The region size is `size`. The addresses and `size` must
     /// be aligned to 4K, otherwise it will return
     /// [`Err(PagingError::NotAligned)`].
@@ -530,7 +519,7 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
         }
         let src_table = self.table_of(other.root_paddr);
         let root_paddr = self.root_paddr;
-        let dst_table = self.table_of_mut(root_paddr);
+        let dst_table = self.inner.table_of_mut(root_paddr);
         let index_fn = if M::LEVELS == 3 {
             p3_index
         } else if M::LEVELS == 4 {
@@ -549,6 +538,7 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
             }
             *entry = src_table[i];
         }
+        self.flusher = TlbFlusher::Full;
     }
 
     /// Flushes the TLB according to the recorded flush requests.
