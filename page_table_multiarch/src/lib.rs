@@ -22,6 +22,8 @@ pub use self::bits32::PageTable32;
 #[cfg(target_pointer_width = "64")]
 pub use self::bits64::PageTable64;
 
+pub use arch::*; // re-export architecture-specific items
+
 /// The error type for page table operation failures.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum PagingError {
