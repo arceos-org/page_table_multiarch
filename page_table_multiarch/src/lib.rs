@@ -6,6 +6,9 @@
 extern crate log;
 
 mod arch;
+#[cfg(target_pointer_width = "32")]
+mod bits32;
+#[cfg(target_pointer_width = "64")]
 mod bits64;
 
 use core::{fmt::Debug, marker::PhantomData};
@@ -14,7 +17,12 @@ use memory_addr::{MemoryAddr, PhysAddr, VirtAddr};
 #[doc(no_inline)]
 pub use page_table_entry::{GenericPTE, MappingFlags};
 
-pub use self::{arch::*, bits64::PageTable64};
+#[cfg(target_pointer_width = "32")]
+pub use self::bits32::PageTable32;
+#[cfg(target_pointer_width = "64")]
+pub use self::bits64::PageTable64;
+
+pub use arch::*; // re-export architecture-specific items
 
 /// The error type for page table operation failures.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -93,6 +101,42 @@ pub trait PagingHandler: Sized {
     fn alloc_frame() -> Option<PhysAddr>;
     /// Request to free a allocated physical frame.
     fn dealloc_frame(paddr: PhysAddr);
+
+    /// Request to allocate contiguous physical frames with specified alignment.
+    ///
+    /// This is used for allocating page tables that require multiple pages or
+    /// specific alignment (e.g., ARMv7-A L1 page table needs 16KB with 16KB
+    /// alignment).
+    ///
+    /// # Arguments
+    ///
+    /// * `num_pages` - Number of 4K pages to allocate
+    /// * `align_pow2` - Alignment requirement in bytes (must be power of 2)
+    ///
+    /// Default implementation falls back to `alloc_frame()` for single 4K page.
+    fn alloc_frame_contiguous(num_pages: usize, align_pow2: usize) -> Option<PhysAddr> {
+        if num_pages == 1 && align_pow2 <= memory_addr::PAGE_SIZE_4K {
+            Self::alloc_frame()
+        } else {
+            None // Subclasses should override this for multi-page allocation
+        }
+    }
+
+    /// Request to free contiguous physical frames.
+    ///
+    /// # Arguments
+    ///
+    /// * `paddr` - Physical address of the first frame
+    /// * `num_pages` - Number of 4K pages to deallocate
+    ///
+    /// Default implementation falls back to `dealloc_frame()` for single page.
+    fn dealloc_frame_contiguous(paddr: PhysAddr, num_pages: usize) {
+        if num_pages == 1 {
+            Self::dealloc_frame(paddr);
+        }
+        // Subclasses should override this for multi-page deallocation
+    }
+
     /// Returns a virtual address that maps to the given physical address.
     ///
     /// Used to access the physical memory directly in page table
@@ -106,6 +150,8 @@ pub trait PagingHandler: Sized {
 pub enum PageSize {
     /// Size of 4 kilobytes (2<sup>12</sup> bytes).
     Size4K = 0x1000,
+    /// Size of 1 megabytes (2<sup>20</sup> bytes). Used by ARMv7-A.
+    Size1M = 0x10_0000,
     /// Size of 2 megabytes (2<sup>21</sup> bytes).
     Size2M = 0x20_0000,
     /// Size of 1 gigabytes (2<sup>30</sup> bytes).
@@ -115,7 +161,7 @@ pub enum PageSize {
 impl PageSize {
     /// Whether this page size is considered huge (larger than 4K).
     pub const fn is_huge(self) -> bool {
-        matches!(self, Self::Size1G | Self::Size2M)
+        matches!(self, Self::Size1G | Self::Size2M | Self::Size1M)
     }
 
     /// Checks whether a given address or size is aligned to the page size.
