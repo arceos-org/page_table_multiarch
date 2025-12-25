@@ -8,10 +8,20 @@ const ENTRY_COUNT: usize = 4096; // ARMv7-A L1 has 4096 entries
 #[cfg(not(target_arch = "arm"))]
 const ENTRY_COUNT: usize = 512; // 512 entries per table
 
+/// Extract the L1 (first-level) page table index from a virtual address.
+/// 
+/// For ARMv7-A:
+/// - L1 uses bits[31:20] of the virtual address (12 bits = 4096 entries)
+/// - Each L1 entry covers 1MB of virtual address space
 const fn p1_index(vaddr: usize) -> usize {
     (vaddr >> 20) & 0xFFF // bits[31:20] for 1MB sections
 }
 
+/// Extract the L2 (second-level) page table index from a virtual address.
+/// 
+/// For ARMv7-A:
+/// - L2 uses bits[19:12] of the virtual address (8 bits = 256 entries)
+/// - Each L2 entry covers 4KB of virtual address space
 const fn p2_index(vaddr: usize) -> usize {
     (vaddr >> 12) & 0xFF // bits[19:12] for 4KB pages
 }

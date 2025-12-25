@@ -213,17 +213,17 @@ impl DescriptorAttr {
 
     /// Checks if this is a Section descriptor (L1).
     pub const fn is_section(&self) -> bool {
-        (self.bits() & 0b11) == 0b10
+        self.descriptor_type() == 0b10
     }
 
     /// Checks if this is a Page Table descriptor (L1).
     pub const fn is_page_table(&self) -> bool {
-        (self.bits() & 0b11) == 0b01
+        self.descriptor_type() == 0b01
     }
 
     /// Checks if this is a Small Page descriptor (L2).
     pub const fn is_small_page(&self) -> bool {
-        (self.bits() & 0b11) == 0b10
+        self.descriptor_type() == 0b10
     }
 }
 
