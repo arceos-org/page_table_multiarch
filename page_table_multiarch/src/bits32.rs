@@ -1,7 +1,11 @@
-use crate::{GenericPTE, PagingHandler, PagingMetaData};
-use crate::{MappingFlags, PageSize, PagingError, PagingResult, TlbFlush, TlbFlushAll};
 use core::marker::PhantomData;
+
 use memory_addr::{MemoryAddr, PAGE_SIZE_4K, PhysAddr};
+
+use crate::{
+    GenericPTE, MappingFlags, PageSize, PagingError, PagingHandler, PagingMetaData, PagingResult,
+    TlbFlush, TlbFlushAll,
+};
 
 #[cfg(target_arch = "arm")]
 const ENTRY_COUNT: usize = 4096; // ARMv7-A L1 has 4096 entries
@@ -9,7 +13,7 @@ const ENTRY_COUNT: usize = 4096; // ARMv7-A L1 has 4096 entries
 const ENTRY_COUNT: usize = 512; // 512 entries per table
 
 /// Extract the L1 (first-level) page table index from a virtual address.
-/// 
+///
 /// For ARMv7-A:
 /// - L1 uses bits[31:20] of the virtual address (12 bits = 4096 entries)
 /// - Each L1 entry covers 1MB of virtual address space
@@ -18,7 +22,7 @@ const fn p1_index(vaddr: usize) -> usize {
 }
 
 /// Extract the L2 (second-level) page table index from a virtual address.
-/// 
+///
 /// For ARMv7-A:
 /// - L2 uses bits[19:12] of the virtual address (8 bits = 256 entries)
 /// - Each L2 entry covers 4KB of virtual address space
@@ -124,8 +128,8 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32<M, PTE, H
     /// Returns the physical address of the target frame, the page size, and the
     /// flags of the mapping.
     ///
-    /// Returns [`Err(PagingError::NotMapped)`](PagingError::NotMapped) if the mapping
-    /// is not present.
+    /// Returns [`Err(PagingError::NotMapped)`](PagingError::NotMapped) if the
+    /// mapping is not present.
     pub fn query(&self, vaddr: M::VirtAddr) -> PagingResult<(PhysAddr, PageSize, MappingFlags)> {
         let (entry, size) = self.get_entry(vaddr)?;
         if entry.is_unused() {
@@ -380,7 +384,8 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32<M, PTE, H
         Ok(TlbFlushAll::new())
     }
 
-    /// Copy entries from another page table within the given virtual memory range.
+    /// Copy entries from another page table within the given virtual memory
+    /// range.
     #[cfg(feature = "copy-from")]
     pub fn copy_from(&mut self, other: &Self, start: M::VirtAddr, size: usize) {
         if size == 0 {

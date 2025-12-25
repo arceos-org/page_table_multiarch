@@ -1,6 +1,7 @@
 //! ARMv7-A specific page table structures.
 
 use core::arch::asm;
+
 use page_table_entry::arm::A32PTE;
 
 use crate::{PageTable32, PagingMetaData};
@@ -37,7 +38,7 @@ impl PagingMetaData for A32PagingMetaData {
             }
             // Data Synchronization Barrier
             asm!("dsb");
-            // Instruction Synchronization Barrier  
+            // Instruction Synchronization Barrier
             asm!("isb");
         }
     }

@@ -6,6 +6,7 @@
 extern crate log;
 
 mod arch;
+#[cfg(target_pointer_width = "32")]
 mod bits32;
 #[cfg(target_pointer_width = "64")]
 mod bits64;
@@ -13,19 +14,13 @@ mod bits64;
 use core::fmt::Debug;
 
 use memory_addr::{MemoryAddr, PhysAddr, VirtAddr};
-
-pub use self::arch::*;
-pub use self::bits32::PageTable32;
-#[cfg(target_pointer_width = "64")]
-pub use self::bits64::PageTable64;
-
 #[doc(no_inline)]
 pub use page_table_entry::{GenericPTE, MappingFlags};
 
-pub use self::{
-    arch::*,
-    bits64::{PageTable64, PageTable64Cursor},
-};
+#[cfg(target_pointer_width = "32")]
+pub use self::bits32::PageTable32;
+#[cfg(target_pointer_width = "64")]
+pub use self::bits64::PageTable64;
 
 /// The error type for page table operation failures.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -110,11 +105,12 @@ pub trait PagingHandler: Sized {
     fn alloc_frames(num: usize, align: usize) -> Option<PhysAddr>;
     /// Request to free a allocated physical frame.
     fn dealloc_frame(paddr: PhysAddr);
-    
+
     /// Request to allocate contiguous physical frames with specified alignment.
     ///
     /// This is used for allocating page tables that require multiple pages or
-    /// specific alignment (e.g., ARMv7-A L1 page table needs 16KB with 16KB alignment).
+    /// specific alignment (e.g., ARMv7-A L1 page table needs 16KB with 16KB
+    /// alignment).
     ///
     /// # Arguments
     ///
@@ -129,7 +125,7 @@ pub trait PagingHandler: Sized {
             None // Subclasses should override this for multi-page allocation
         }
     }
-    
+
     /// Request to free contiguous physical frames.
     ///
     /// # Arguments
@@ -144,7 +140,7 @@ pub trait PagingHandler: Sized {
         }
         // Subclasses should override this for multi-page deallocation
     }
-    
+
     /// Returns a virtual address that maps to the given physical address.
     ///
     /// Used to access the physical memory directly in page table

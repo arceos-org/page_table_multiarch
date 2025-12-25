@@ -7,7 +7,9 @@ use std::{
 
 use memory_addr::{PhysAddr, VirtAddr};
 use page_table_entry::{GenericPTE, MappingFlags};
-use page_table_multiarch::{PageSize, PageTable32, PageTable64, PagingHandler, PagingMetaData, PagingResult};
+use page_table_multiarch::{
+    PageSize, PageTable32, PageTable64, PagingHandler, PagingMetaData, PagingResult,
+};
 use rand::{Rng, SeedableRng, rngs::SmallRng};
 
 /// Creates a layout for allocating `num` pages with alignment of `2^align_pow2`
@@ -139,7 +141,8 @@ fn run_test_for<M: PagingMetaData<VirtAddr = VirtAddr>, PTE: GenericPTE>() -> Pa
     Ok(())
 }
 
-fn run_test_for_32bit<M: PagingMetaData<VirtAddr = VirtAddr>, PTE: GenericPTE>() -> PagingResult<()> {
+fn run_test_for_32bit<M: PagingMetaData<VirtAddr = VirtAddr>, PTE: GenericPTE>() -> PagingResult<()>
+{
     ALLOCATED.with_borrow_mut(|it| {
         it.clear();
     });
@@ -149,7 +152,8 @@ fn run_test_for_32bit<M: PagingMetaData<VirtAddr = VirtAddr>, PTE: GenericPTE>()
     let mut table = PageTable32::<M, PTE, TrackPagingHandler<M>>::try_new().unwrap();
     let mut pages = HashSet::new();
     let mut rng = SmallRng::seed_from_u64(5678);
-    for _ in 0..512 {  // Fewer iterations for 32-bit to avoid address space exhaustion
+    for _ in 0..512 {
+        // Fewer iterations for 32-bit to avoid address space exhaustion
         if rng.random_ratio(3, 4) || pages.is_empty() {
             // insert a mapping
             let addr = loop {
