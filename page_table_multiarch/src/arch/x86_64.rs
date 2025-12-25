@@ -5,6 +5,17 @@ use page_table_entry::x86_64::X64PTE;
 
 use crate::{PageTable64, PageTable64Mut, PagingMetaData};
 
+#[inline]
+fn local_flush_tlb(vaddr: Option<memory_addr::VirtAddr>) {
+    unsafe {
+        if let Some(vaddr) = vaddr {
+            x86::tlb::flush(vaddr.into());
+        } else {
+            x86::tlb::flush_all();
+        }
+    }
+}
+
 /// metadata of x86_64 page tables.
 pub struct X64PagingMetaData;
 
@@ -16,13 +27,14 @@ impl PagingMetaData for X64PagingMetaData {
 
     #[inline]
     fn flush_tlb(vaddr: Option<VirtAddr>) {
-        unsafe {
-            if let Some(vaddr) = vaddr {
-                x86::tlb::flush(vaddr.into());
-            } else {
-                x86::tlb::flush_all();
-            }
+        #[cfg(feature = "smp")]
+        {
+            use crate::__TlbFlushIf_mod;
+            use crate_interface::call_interface;
+
+            call_interface!(TlbFlushIf::flush_all(vaddr));
         }
+        local_flush_tlb(vaddr);
     }
 }
 
