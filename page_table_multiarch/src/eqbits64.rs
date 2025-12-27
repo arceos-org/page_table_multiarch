@@ -197,13 +197,23 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
     /// Returns [`Err(PagingError::NotMapped)`](PagingError::NotMapped) if the
     /// mapping is not present.
     pub fn unmap(&mut self, vaddr: M::VirtAddr) -> PagingResult<(PhysAddr, PageSize, TlbFlush<M>)> {
-        let (entry, size) = self.get_entry_mut(vaddr)?;
+        let (entry, size, pt_frame) = self.get_entry_pt_mut(vaddr)?;
         if !entry.is_present() {
             entry.clear();
             return Err(PagingError::NotMapped);
         }
         let paddr = entry.paddr();
         entry.clear();
+
+        if self.next_page_table_is_empty(pt_frame) {
+            debug!(
+                "Next level PT {:#x} is empty after unmapping vaddr {:#x}",
+                pt_frame, vaddr
+            );
+            // Next level PT is empty after unmapping, we shoule dealloc it.
+            // H::dealloc_frame(pt_frame);
+        }
+
         Ok((paddr, size, TlbFlush::new(vaddr)))
     }
 
@@ -559,6 +569,47 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
         Ok((p1e, PageSize::Size4K))
     }
 
+    fn next_page_table_is_empty(&self, pt: PhysAddr) -> bool {
+        let pte_table = self.table_of(pt);
+        for pte in pte_table {
+            if !pte.is_unused() {
+                return false;
+            }
+        }
+        true
+    }
+
+    /// Only used in unmap to get the page table frame that may be freed.
+    fn get_entry_pt_mut(
+        &mut self,
+        vaddr: M::VirtAddr,
+    ) -> PagingResult<(&mut PTE, PageSize, PhysAddr)> {
+        let vaddr: usize = vaddr.into();
+        let (p3, p3_paddr) = if M::LEVELS == 3 {
+            (self.table_of_mut(self.root_paddr()), self.root_paddr())
+        } else if M::LEVELS == 4 {
+            let p4 = self.table_of_mut(self.root_paddr());
+            let p4e = &mut p4[p4_index(vaddr)];
+            (self.next_table_mut(p4e)?, p4e.paddr())
+        } else {
+            unreachable!()
+        };
+        let p3e = &mut p3[p3_index(vaddr)];
+        if p3e.is_huge() {
+            return Ok((p3e, PageSize::Size1G, p3_paddr));
+        }
+
+        let p2 = self.next_table_mut(p3e)?;
+        let p2e = &mut p2[p2_index(vaddr)];
+        if p2e.is_huge() {
+            return Ok((p2e, PageSize::Size2M, p3e.paddr()));
+        }
+
+        let p1 = self.next_table_mut(p2e)?;
+        let p1e = &mut p1[p1_index(vaddr)];
+        Ok((p1e, PageSize::Size4K, p2e.paddr()))
+    }
+
     fn get_entry_mut_or_create(
         &mut self,
         vaddr: M::VirtAddr,
@@ -647,7 +698,10 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler> Dr
     for EqPageTable64Ext<M, PTE, H, SH>
 {
     fn drop(&mut self) {
-        debug!("Dropping EqPageTable64Ext page table @ {:#x}", self.root_paddr());
+        debug!(
+            "Dropping EqPageTable64Ext page table @ {:#x}",
+            self.root_paddr()
+        );
 
         // don't free the entries in last level, they are not array.
         let _ = self.walk(
