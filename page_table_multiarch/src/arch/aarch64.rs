@@ -27,10 +27,17 @@ impl PagingMetaData for A64PagingMetaData {
             if let Some(vaddr) = vaddr {
                 // TLB Invalidate by VA, All ASID, EL1, Inner Shareable
                 const VA_MASK: usize = (1 << 44) - 1; // VA[55:12] => bits[43:0]
-                asm!("tlbi vaae1is, {}; dsb sy; isb", in(reg) ((vaddr.as_usize() >> 12) & VA_MASK))
+                let va = (vaddr.as_usize() >> 12) & VA_MASK;
+                #[cfg(feature = "smp")]
+                asm!("dsb ishst; tlbi vaae1is, {}; dsb sy; isb", in(reg) va);
+                #[cfg(not(feature = "smp"))]
+                asm!("dsb nshst; tlbi vaae1, {}; dsb sy; isb", in(reg) va);
             } else {
+                #[cfg(feature = "smp")]
                 // TLB Invalidate by VMID, All at stage 1, EL1
-                asm!("tlbi vmalle1; dsb sy; isb")
+                asm!("dsb ishst; tlbi vmalle1is; dsb sy; isb");
+                #[cfg(not(feature = "smp"))]
+                asm!("dsb nshst; tlbi vmalle1; dsb sy; isb");
             }
         }
     }

@@ -138,3 +138,18 @@ impl From<PageSize> for usize {
         size as usize
     }
 }
+
+/// Interface for performing TLB flush operations on SMP systems.
+///
+/// This trait is used by the page table subsystem to request
+/// architecture- or platform-specific TLB invalidation.
+#[cfg(feature = "smp")]
+#[crate_interface::def_interface]
+pub trait TlbFlushIf {
+    /// Flush TLB entries.
+    ///
+    /// If `vaddr` is `None`, flush all TLB entries.
+    /// If `Some(vaddr)` is provided, flush the TLB entry corresponding
+    /// to the given virtual address.
+    fn flush_all(vaddr: Option<VirtAddr>);
+}
