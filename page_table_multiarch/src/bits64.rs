@@ -554,10 +554,13 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
         );
         while size > 0 {
             let vaddr = vaddr_usize.into();
-            let page_size = match self.protect(vaddr, flags) {
-                Ok(page_size) => {
-                    assert!(page_size.is_aligned(vaddr_usize));
-                    assert!(page_size as usize <= size);
+            let page_size = match self.inner.get_entry_mut(vaddr) {
+                Ok((entry, page_size)) => {
+                    if entry.is_present() {
+                        entry.set_flags(flags, page_size.is_huge());
+                        self.push(vaddr);
+                    }
+                    // ignore if not present
 
                     page_size
                 }
@@ -568,6 +571,8 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
                 }
             };
 
+            assert!(page_size.is_aligned(vaddr_usize));
+            assert!(page_size as usize <= size);
             vaddr_usize += page_size as usize;
             size -= page_size as usize;
         }
