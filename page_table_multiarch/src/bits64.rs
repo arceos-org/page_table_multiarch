@@ -71,6 +71,32 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H
         Ok((entry.paddr().add(off), entry.flags(), size))
     }
 
+    /// Walk the page table recursively.
+    ///
+    /// When reaching a page table entry, call `pre_func` and `post_func` on the
+    /// entry if they are provided. The max number of enumerations in one table
+    /// is limited by `limit`. `pre_func` and `post_func` are called before and
+    /// after recursively walking the page table.
+    ///
+    /// The arguments of `*_func` are:
+    /// - Current level (starts with `0`): `usize`
+    /// - The index of the entry in the current-level table: `usize`
+    /// - The virtual address that is mapped to the entry: `M::VirtAddr`
+    /// - The reference of the entry: [`&PTE`](GenericPTE)
+    pub fn walk<F>(&self, limit: usize, pre_func: Option<&F>, post_func: Option<&F>)
+    where
+        F: Fn(usize, usize, M::VirtAddr, &PTE),
+    {
+        self.walk_recursive(
+            self.table_of(self.root_paddr()),
+            0,
+            0.into(),
+            limit,
+            pre_func,
+            post_func,
+        )
+    }
+
     /// Gets a cursor to modify the page table.
     ///
     /// The TLB will be flushed automatically when the cursor is dropped.
@@ -214,6 +240,44 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64<M, PTE, H
         let p1 = self.next_table_mut_or_create(p2e)?;
         let p1e = &mut p1[p1_index(vaddr)];
         Ok(p1e)
+    }
+
+    fn walk_recursive<F>(
+        &self,
+        table: &[PTE],
+        level: usize,
+        start_vaddr: M::VirtAddr,
+        limit: usize,
+        pre_func: Option<&F>,
+        post_func: Option<&F>,
+    ) where
+        F: Fn(usize, usize, M::VirtAddr, &PTE),
+    {
+        let start_vaddr_usize: usize = start_vaddr.into();
+        let mut n = 0;
+        for (i, entry) in table.iter().enumerate() {
+            let vaddr_usize = start_vaddr_usize + (i << (12 + (M::LEVELS - 1 - level) * 9));
+            let vaddr = vaddr_usize.into();
+
+            if entry.is_present() {
+                if let Some(func) = pre_func {
+                    func(level, i, vaddr, entry);
+                }
+                if level < M::LEVELS - 1
+                    && !entry.is_huge()
+                    && let Ok(table) = self.next_table(entry)
+                {
+                    self.walk_recursive(table, level + 1, vaddr, limit, pre_func, post_func);
+                }
+                if let Some(func) = post_func {
+                    func(level, i, vaddr, entry);
+                }
+                n += 1;
+                if n >= limit {
+                    break;
+                }
+            }
+        }
     }
 
     fn dealloc_tree(&self, table_paddr: PhysAddr, level: usize) {
