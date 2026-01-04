@@ -34,8 +34,10 @@ pub struct EqPageTable64Ext<
     SH: PagingHandler = H,
 > {
     root_paddr: PhysAddr,
-    shared_vaddr_range: Option<AddrRange<M::VirtAddr>>,
-    shared_vaddr_pgdir_initialized: bool,
+    /// The private virtual address range for this page table,
+    /// if set, page tables for addresses in this range are private to this page table,
+    /// otherwise, they are shared among multiple page tables.
+    private_vaddr_range: Option<AddrRange<M::VirtAddr>>,
     _phantom: PhantomData<(M, PTE, H, SH)>,
 }
 
@@ -56,9 +58,9 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
 
     pub fn from_paddr(
         root_paddr: PhysAddr,
-        shared_vaddr_range: Option<AddrRange<M::VirtAddr>>,
+        private_vaddr_range: Option<AddrRange<M::VirtAddr>>,
     ) -> PagingResult<Self> {
-        if let Some(range) = &shared_vaddr_range {
+        if let Some(range) = &private_vaddr_range {
             if !range.start.is_aligned(P4E_ADDR_RANGE) || !range.end.is_aligned(P4E_ADDR_RANGE) {
                 error!(
                     "shared_vaddr_range {:?} is not aligned to {:#x}",
@@ -70,59 +72,9 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
 
         Ok(Self {
             root_paddr,
-            shared_vaddr_range,
-            shared_vaddr_pgdir_initialized: false,
+            private_vaddr_range,
             _phantom: PhantomData,
         })
-    }
-
-    /// Initialize the P4E entries for the shared virtual address range,
-    /// this function should be called before forking this process.
-    fn init_shared_vaddr_range_pgdir(&mut self) -> PagingResult<()> {
-        let range = if let Some(range) = &self.shared_vaddr_range {
-            range
-        } else {
-            return Ok(());
-        };
-
-        if M::LEVELS == 3 {
-            error!(
-                "shared_vaddr_range {:?} is not supported in 3-level page table",
-                range
-            );
-            return Err(PagingError::NotAligned);
-        }
-
-        let start_vaddr = range.start;
-        let end_vaddr = range.end;
-        if !start_vaddr.is_aligned(P4E_ADDR_RANGE) || !end_vaddr.is_aligned(P4E_ADDR_RANGE) {
-            error!(
-                "shared_vaddr_range {:?} is not aligned to {:#x}",
-                range, P4E_ADDR_RANGE
-            );
-            return Err(PagingError::NotAligned);
-        }
-
-        let mut vaddr = start_vaddr.into();
-
-        while vaddr < end_vaddr.into() {
-            let p4 = self.table_of_mut(self.root_paddr());
-            let index = p4_index(vaddr);
-            let p4e = &mut p4[index];
-
-            // Prefill the P4E, allocate the physical frame for the next level page table.
-            // Because the PGDIR frame will be copied during fork, while the next level
-            // page table is shared among processes.
-            let _p3e = self.next_table_mut_or_create(vaddr, p4e, true)?;
-
-            info!("Prefilled P4E[{index}] for vaddr {:#x}", vaddr);
-
-            vaddr = vaddr.add(P4E_ADDR_RANGE);
-        }
-
-        self.shared_vaddr_pgdir_initialized = true;
-
-        Ok(())
     }
 
     /// Returns the physical address of the root page table.
@@ -619,23 +571,18 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler, SH: PagingHandler>
         vaddr: M::VirtAddr,
         page_size: PageSize,
     ) -> PagingResult<&mut PTE> {
-        let shared_pt = if let Some(range) = &self.shared_vaddr_range {
-            // These address are total hack, should be defined in a better way.
-            // 0x5000_0000_0000: `USER_MMAP_BASE_HINT`, Junction will only allocate address below this for user,
-            // 0x200000: the low memory region used by Junction.
-            vaddr.into() >= 0x5000_0000_0000 || range.contains(vaddr) || vaddr.into() < 0x200000
+        let shared_pt = if let Some(range) = &self.private_vaddr_range {
+            // For vaddrs outside the private_vaddr_range, use shared mapping, which is visiable for
+            // all processes in this instance.
+            // Otherwise, use private page tables.
+            !range.contains(vaddr)
         } else {
+            // no private_vaddr_range is set, all page tables are treated as private
             false
         };
 
-        if shared_pt && !self.shared_vaddr_pgdir_initialized {
-            self.init_shared_vaddr_range_pgdir()?;
-        }
         let vaddr: usize = vaddr.into();
 
-        // if shared_pt {
-        //     info!("vaddr: {:#x?} is in shared pt", vaddr);
-        // }
         let p3 = if M::LEVELS == 3 {
             self.table_of_mut(self.root_paddr())
         } else if M::LEVELS == 4 {
