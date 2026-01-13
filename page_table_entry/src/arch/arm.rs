@@ -115,6 +115,7 @@ bitflags::bitflags! {
 
 impl DescriptorAttr {
     /// Creates descriptor attributes from MappingFlags for a Section (1MB).
+    #[inline]
     pub const fn from_mapping_flags_section(flags: MappingFlags) -> Self {
         let mut bits = Self::SECTION.bits();
 
@@ -162,6 +163,7 @@ impl DescriptorAttr {
     }
 
     /// Creates descriptor attributes from MappingFlags for a Small Page (4KB).
+    #[inline]
     pub const fn from_mapping_flags_small_page(flags: MappingFlags) -> Self {
         let mut bits = Self::SMALL_PAGE.bits();
 
@@ -229,6 +231,7 @@ impl DescriptorAttr {
 }
 
 impl From<DescriptorAttr> for MappingFlags {
+    #[inline]
     fn from(attr: DescriptorAttr) -> Self {
         if !attr.is_valid() {
             return Self::empty();
@@ -294,12 +297,14 @@ impl A32PTE {
     }
 
     /// Creates a Section descriptor (1MB block).
+    #[inline]
     pub const fn new_section(paddr: PhysAddr, flags: MappingFlags) -> Self {
         let attr = DescriptorAttr::from_mapping_flags_section(flags);
         Self(attr.bits() | (paddr.as_usize() as u32 & Self::SECTION_ADDR_MASK))
     }
 
     /// Creates a Small Page descriptor (4KB page).
+    #[inline]
     pub const fn new_small_page(paddr: PhysAddr, flags: MappingFlags) -> Self {
         let attr = DescriptorAttr::from_mapping_flags_small_page(flags);
         Self(attr.bits() | (paddr.as_usize() as u32 & Self::SMALL_PAGE_ADDR_MASK))
@@ -317,6 +322,7 @@ impl A32PTE {
 }
 
 impl GenericPTE for A32PTE {
+    #[inline]
     fn new_page(paddr: PhysAddr, flags: MappingFlags, is_huge: bool) -> Self {
         if is_huge {
             // 1MB Section
@@ -327,6 +333,7 @@ impl GenericPTE for A32PTE {
         }
     }
 
+    #[inline]
     fn new_table(paddr: PhysAddr) -> Self {
         // Page Table descriptor (L1 -> L2)
         let attr = DescriptorAttr::PAGE_TABLE;
