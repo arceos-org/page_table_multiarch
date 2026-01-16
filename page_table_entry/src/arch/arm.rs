@@ -114,14 +114,8 @@ bitflags::bitflags! {
 }
 
 impl DescriptorAttr {
-    /// Creates descriptor attributes from MappingFlags for a Section (1MB).
-    #[inline]
-    pub const fn from_mapping_flags_section(flags: MappingFlags) -> Self {
-        let mut bits = Self::SECTION.bits();
-
-        if flags.is_empty() {
-            return Self::from_bits_retain(0);
-        }
+    const fn common_flags(flags: MappingFlags) -> u32 {
+        let mut bits = 0;
 
         // Memory type
         if flags.contains(MappingFlags::DEVICE) {
@@ -150,6 +144,20 @@ impl DescriptorAttr {
             bits |= Self::AP_PRIV_RO.bits();
         }
 
+        bits
+    }
+
+    /// Creates descriptor attributes from MappingFlags for a Section (1MB).
+    #[inline]
+    pub const fn from_mapping_flags_section(flags: MappingFlags) -> Self {
+        let mut bits = Self::SECTION.bits();
+
+        if flags.is_empty() {
+            return Self::from_bits_retain(0);
+        }
+
+        bits |= Self::common_flags(flags);
+
         // Execute Never is in bit 4 for Sections when using LPAE
         // For standard ARMv7-A, XN is controlled via domain + TEX[0]
         // We use simplified model: if not executable, set appropriate bits
@@ -171,30 +179,7 @@ impl DescriptorAttr {
             return Self::from_bits_retain(0);
         }
 
-        // Memory type
-        if flags.contains(MappingFlags::DEVICE) {
-            bits |= Self::DEVICE_MEMORY.bits();
-        } else if flags.contains(MappingFlags::UNCACHED) {
-            bits |= Self::TEX0.bits();
-        } else {
-            bits |= Self::NORMAL_SHAREABLE.bits();
-        }
-
-        // Access permissions
-        let has_write = flags.contains(MappingFlags::WRITE);
-        let has_user = flags.contains(MappingFlags::USER);
-
-        if has_user {
-            if has_write {
-                bits |= Self::AP_USER_RW.bits();
-            } else {
-                bits |= Self::AP_USER_RO.bits();
-            }
-        } else if has_write {
-            bits |= Self::AP_PRIV_RW.bits();
-        } else {
-            bits |= Self::AP_PRIV_RO.bits();
-        }
+        bits |= Self::common_flags(flags);
 
         // Execute Never for Small Pages
         if !flags.contains(MappingFlags::EXECUTE) {
