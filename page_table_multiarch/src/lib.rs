@@ -6,7 +6,6 @@
 extern crate log;
 
 mod arch;
-#[cfg(target_pointer_width = "32")]
 mod bits32;
 #[cfg(target_pointer_width = "64")]
 mod bits64;
@@ -18,7 +17,6 @@ use memory_addr::{MemoryAddr, PhysAddr, VirtAddr};
 #[doc(no_inline)]
 pub use page_table_entry::{GenericPTE, MappingFlags};
 
-#[cfg(target_pointer_width = "32")]
 pub use self::bits32::PageTable32;
 #[cfg(target_pointer_width = "64")]
 pub use self::bits64::PageTable64; // re-export architecture-specific items
