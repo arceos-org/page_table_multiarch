@@ -90,9 +90,19 @@ pub trait PagingMetaData: Sync + Send {
 /// [`PageTable64`].
 pub trait PagingHandler: Sized {
     /// Request to allocate a 4K-sized physical frame.
-    fn alloc_frame() -> Option<PhysAddr>;
+    fn alloc_frame() -> Option<PhysAddr> {
+        Self::alloc_frames(1, 0)
+    }
+    /// Allocate `num` contiguous physical frames, with the starting physical
+    /// address aligned to `2^align_pow2` frames.
+    fn alloc_frames(num: usize, align_pow2: usize) -> Option<PhysAddr>;
     /// Request to free a allocated physical frame.
-    fn dealloc_frame(paddr: PhysAddr);
+    fn dealloc_frame(paddr: PhysAddr) {
+        Self::dealloc_frames(paddr, 1)
+    }
+    /// Free `num` contiguous physical frames starting from the given physical
+    /// address. The `num` must be the same as that used in allocation.
+    fn dealloc_frames(paddr: PhysAddr, num: usize);
     /// Returns a virtual address that maps to the given physical address.
     ///
     /// Used to access the physical memory directly in page table
