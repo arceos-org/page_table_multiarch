@@ -13,6 +13,7 @@ mod bits64;
 
 use core::fmt::Debug;
 
+pub use arch::*;
 use memory_addr::{MemoryAddr, PhysAddr, VirtAddr};
 #[doc(no_inline)]
 pub use page_table_entry::{GenericPTE, MappingFlags};
@@ -20,9 +21,7 @@ pub use page_table_entry::{GenericPTE, MappingFlags};
 #[cfg(target_pointer_width = "32")]
 pub use self::bits32::PageTable32;
 #[cfg(target_pointer_width = "64")]
-pub use self::bits64::PageTable64;
-
-pub use arch::*; // re-export architecture-specific items
+pub use self::bits64::PageTable64; // re-export architecture-specific items
 
 /// The error type for page table operation failures.
 #[derive(Debug, PartialEq, Clone, Copy)]
