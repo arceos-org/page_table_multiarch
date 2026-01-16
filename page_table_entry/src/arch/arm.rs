@@ -117,7 +117,8 @@ bitflags::bitflags! {
 }
 
 impl DescriptorAttr {
-    /// Returns the common flags for both Section (L1) and Small Page (L2) descriptors.
+    /// Returns the common flags for both Section (L1) and Small Page (L2)
+    /// descriptors.
     pub const fn common_flags(flags: MappingFlags) -> u32 {
         let mut bits = 0;
 
@@ -195,9 +196,14 @@ impl DescriptorAttr {
         // - S: 16 -> 10
         // - nG: 17 -> 11
         // Mask covers bits 10 to 17
-        let shift_mask = Self::AP0.bits() | Self::AP1.bits() |
-            Self::TEX0.bits() | Self::TEX1.bits() | Self::TEX2.bits() |
-            Self::AP2.bits() | Self::S.bits() | Self::NG.bits();
+        let shift_mask = Self::AP0.bits()
+            | Self::AP1.bits()
+            | Self::TEX0.bits()
+            | Self::TEX1.bits()
+            | Self::TEX2.bits()
+            | Self::AP2.bits()
+            | Self::S.bits()
+            | Self::NG.bits();
 
         bits |= (attr & shift_mask) >> 6;
 
@@ -351,9 +357,9 @@ impl GenericPTE for A32PTE {
             0b01 => self.0 & Self::PAGE_TABLE_ADDR_MASK, // Page Table
             0b10 => {
                 if (self.0 & Self::SECTION_ADDR_MASK) >= 0x10_0000 {
-                     self.0 & Self::SECTION_ADDR_MASK // Section
+                    self.0 & Self::SECTION_ADDR_MASK // Section
                 } else {
-                     self.0 & Self::SMALL_PAGE_ADDR_MASK // Small Page
+                    self.0 & Self::SMALL_PAGE_ADDR_MASK // Small Page
                 }
             }
             0b11 => self.0 & Self::SMALL_PAGE_ADDR_MASK, // Small Page (XN=1)
