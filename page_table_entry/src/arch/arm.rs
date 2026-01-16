@@ -58,11 +58,14 @@ bitflags::bitflags! {
         /// - 110: Privileged RO, User RO (deprecated)
         /// - 111: Privileged RO, User RO
         const AP0 = 1 << 10;
+        /// Bit[11]: Access Permission bit 1
         const AP1 = 1 << 11;
 
         /// Bits[14:12]: Type Extension (TEX) - Extended memory type
         const TEX0 = 1 << 12;
+        /// Bit[13]: Type Extension bit 1
         const TEX1 = 1 << 13;
+        /// Bit[14]: Type Extension bit 2
         const TEX2 = 1 << 14;
 
         /// Bit[15]: Access Permission bit [2]
@@ -114,6 +117,7 @@ bitflags::bitflags! {
 }
 
 impl DescriptorAttr {
+    /// Returns the common flags for both Section (L1) and Small Page (L2) descriptors.
     pub const fn common_flags(flags: MappingFlags) -> u32 {
         let mut bits = 0;
 
@@ -179,11 +183,27 @@ impl DescriptorAttr {
             return Self::from_bits_retain(0);
         }
 
-        bits |= Self::common_flags(flags);
+        let attr = Self::common_flags(flags);
 
-        // Execute Never for Small Pages
+        // B(2) and C(3) are at the same positions for L1 and L2
+        bits |= attr & (Self::B.bits() | Self::C.bits());
+
+        // Other attributes are shifted right by 6 bits for L2 Small Page:
+        // - AP[1:0]: 11:10 -> 5:4
+        // - TEX[2:0]: 14:12 -> 8:6
+        // - AP[2]: 15 -> 9
+        // - S: 16 -> 10
+        // - nG: 17 -> 11
+        // Mask covers bits 10 to 17
+        let shift_mask = Self::AP0.bits() | Self::AP1.bits() |
+            Self::TEX0.bits() | Self::TEX1.bits() | Self::TEX2.bits() |
+            Self::AP2.bits() | Self::S.bits() | Self::NG.bits();
+
+        bits |= (attr & shift_mask) >> 6;
+
+        // Execute Never for Small Pages (XN is bit 0 in L2)
         if !flags.contains(MappingFlags::EXECUTE) {
-            bits |= Self::XN_SMALL.bits();
+            bits |= Self::TYPE_BIT0.bits();
         }
 
         Self::from_bits_retain(bits)
@@ -330,13 +350,13 @@ impl GenericPTE for A32PTE {
         let addr = match desc_type {
             0b01 => self.0 & Self::PAGE_TABLE_ADDR_MASK, // Page Table
             0b10 => {
-                // Could be Section or Small Page, check if it looks like section
                 if (self.0 & Self::SECTION_ADDR_MASK) >= 0x10_0000 {
-                    self.0 & Self::SECTION_ADDR_MASK // Section
+                     self.0 & Self::SECTION_ADDR_MASK // Section
                 } else {
-                    self.0 & Self::SMALL_PAGE_ADDR_MASK // Small Page
+                     self.0 & Self::SMALL_PAGE_ADDR_MASK // Small Page
                 }
             }
+            0b11 => self.0 & Self::SMALL_PAGE_ADDR_MASK, // Small Page (XN=1)
             _ => 0,
         };
         PhysAddr::from(addr as usize)
