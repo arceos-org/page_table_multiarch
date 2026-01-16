@@ -190,6 +190,7 @@ fn run_test_for_32bit<M: PagingMetaData<VirtAddr = VirtAddr>, PTE: GenericPTE>()
 
 #[test]
 #[cfg(any(target_arch = "arm", docsrs))]
+#[cfg(target_pointer_width = "32")]
 fn test_dealloc_arm32() -> PagingResult<()> {
     run_test_for_32bit::<
         page_table_multiarch::arm::A32PagingMetaData,
