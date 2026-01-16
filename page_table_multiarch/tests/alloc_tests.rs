@@ -8,7 +8,7 @@ use std::{
 use memory_addr::{PhysAddr, VirtAddr};
 use page_table_entry::{GenericPTE, MappingFlags};
 use page_table_multiarch::{
-    PageSize, PageTable32, PageTable64, PagingHandler, PagingMetaData, PagingResult,
+    PageSize, PageTable64, PagingHandler, PagingMetaData, PagingResult,
 };
 use rand::{Rng, SeedableRng, rngs::SmallRng};
 
@@ -144,6 +144,7 @@ fn run_test_for<M: PagingMetaData<VirtAddr = VirtAddr>, PTE: GenericPTE>() -> Pa
 #[cfg(target_pointer_width = "32")]
 fn run_test_for_32bit<M: PagingMetaData<VirtAddr = VirtAddr>, PTE: GenericPTE>() -> PagingResult<()>
 {
+    use page_table_multiarch::PageTable32;
     ALLOCATED.with_borrow_mut(|it| {
         it.clear();
     });
