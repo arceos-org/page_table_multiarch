@@ -141,6 +141,7 @@ fn run_test_for<M: PagingMetaData<VirtAddr = VirtAddr>, PTE: GenericPTE>() -> Pa
     Ok(())
 }
 
+#[cfg(target_pointer_width = "32")]
 fn run_test_for_32bit<M: PagingMetaData<VirtAddr = VirtAddr>, PTE: GenericPTE>() -> PagingResult<()>
 {
     ALLOCATED.with_borrow_mut(|it| {
