@@ -216,12 +216,12 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32<M, PTE, H
         Ok(&mut p2_table[p2])
     }
 
-    fn get_table(&self, paddr: PhysAddr) -> &[PTE] {
+    fn get_table<'a>(&self, paddr: PhysAddr) -> &'a [PTE] {
         let ptr = H::phys_to_virt(paddr).as_ptr() as *const PTE;
         unsafe { core::slice::from_raw_parts(ptr, ENTRY_COUNT) }
     }
 
-    fn get_table_mut(&self, paddr: PhysAddr) -> &mut [PTE] {
+    fn get_table_mut<'a>(&self, paddr: PhysAddr) -> &'a mut [PTE] {
         let ptr = H::phys_to_virt(paddr).as_mut_ptr() as *mut PTE;
         unsafe { core::slice::from_raw_parts_mut(ptr, ENTRY_COUNT) }
     }
@@ -399,9 +399,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32<M, PTE, H
         assert!(start_idx < ENTRY_COUNT);
         assert!(end_idx <= ENTRY_COUNT);
 
-        for i in start_idx..end_idx {
-            dst_table[i] = src_table[i];
-        }
+        dst_table[start_idx..end_idx].copy_from_slice(&src_table[start_idx..end_idx]);
     }
 }
 

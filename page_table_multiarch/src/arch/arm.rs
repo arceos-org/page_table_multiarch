@@ -15,9 +15,10 @@ impl PagingMetaData for A32PagingMetaData {
     const VA_MAX_BITS: usize = 32;
     type VirtAddr = memory_addr::VirtAddr;
 
-    fn vaddr_is_valid(vaddr: usize) -> bool {
+    fn vaddr_is_valid(_vaddr: usize) -> bool {
         // All 32-bit addresses are valid
-        vaddr <= 0xFFFF_FFFF
+        //     vaddr < 0xFFFF_FFFF
+        true
     }
 
     #[inline]
