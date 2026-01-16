@@ -32,9 +32,10 @@ impl PagingMetaData for A32PagingMetaData {
                 );
             } else {
                 // Invalidate entire unified TLB
+                let zero: usize = 0;
                 asm!(
                     "mcr p15, 0, {0}, c8, c7, 0", // TLBIALL
-                    in(reg) 0,
+                    in(reg) zero,
                 );
             }
             // Data Synchronization Barrier

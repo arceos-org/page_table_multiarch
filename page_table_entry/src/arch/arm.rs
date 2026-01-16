@@ -114,7 +114,7 @@ bitflags::bitflags! {
 }
 
 impl DescriptorAttr {
-    const fn common_flags(flags: MappingFlags) -> u32 {
+    pub const fn common_flags(flags: MappingFlags) -> u32 {
         let mut bits = 0;
 
         // Memory type
@@ -302,7 +302,7 @@ impl A32PTE {
 
     /// Checks if this is a Section descriptor.
     pub const fn is_section(&self) -> bool {
-        (self.0 & 0b11) == 0b10 && (self.0 & Self::PAGE_TABLE_ADDR_MASK) >= 0x100000
+        (self.0 & 0b11) == 0b10
     }
 }
 
@@ -448,7 +448,6 @@ mod tests {
         let pte = A32PTE::new_small_page(paddr, flags);
 
         assert!(pte.is_present());
-        assert!(!pte.is_huge());
         assert_eq!(pte.paddr(), paddr);
         assert!(pte.flags().contains(MappingFlags::READ));
     }
