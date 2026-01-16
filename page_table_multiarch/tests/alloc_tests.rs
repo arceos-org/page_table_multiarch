@@ -3,7 +3,6 @@ use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
     marker::PhantomData,
-    mem,
 };
 
 use memory_addr::{PhysAddr, VirtAddr};
