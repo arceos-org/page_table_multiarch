@@ -4,7 +4,7 @@ use core::arch::asm;
 
 use page_table_entry::arm::A32PTE;
 
-use crate::{PageTable32, PagingMetaData};
+use crate::{PageTable32, PageTable32Cursor, PagingMetaData};
 
 /// Metadata of ARMv7-A page tables.
 pub struct A32PagingMetaData;
@@ -48,3 +48,5 @@ impl PagingMetaData for A32PagingMetaData {
 
 /// ARMv7-A Short-descriptor translation table.
 pub type A32PageTable<H> = PageTable32<A32PagingMetaData, A32PTE, H>;
+/// ARMv7-A translation table cursor.
+pub type A32PageCursor<'a, H> = PageTable32Cursor<'a, A32PagingMetaData, A32PTE, H>;
