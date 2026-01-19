@@ -63,13 +63,13 @@ impl PagingHandler for PagingHandlerImpl {
         unsafe { alloc::alloc::dealloc(ptr, layout) };
     }
     
-    fn alloc_frame_contiguous(num_pages: usize, align_pow2: usize) -> Option<PhysAddr> {
+    fn alloc_frames(num_pages: usize, align_pow2: usize) -> Option<PhysAddr> {
         let layout = Layout::from_size_align(num_pages * 0x1000, align_pow2).unwrap();
         let ptr = unsafe { alloc::alloc::alloc(layout) };
         Some(PhysAddr::from(ptr as usize))
     }
     
-    fn dealloc_frame_contiguous(paddr: PhysAddr, num_pages: usize) {
+    fn dealloc_frames(paddr: PhysAddr, num_pages: usize) {
         let layout = Layout::from_size_align(num_pages * 0x1000, 0x1000).unwrap();
         let ptr = paddr.as_usize() as *mut u8;
         unsafe { alloc::alloc::dealloc(ptr, layout) };
