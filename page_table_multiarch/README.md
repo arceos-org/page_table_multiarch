@@ -53,8 +53,8 @@ impl PagingHandler for PagingHandlerImpl {
         Some(PhysAddr::from(ptr as usize))
     }
 
-    fn alloc_frames(num_pages: usize, align_pow2: usize) -> Option<PhysAddr> {
-        let layout = Layout::from_size_align(num_pages * 0x1000, align_pow2).unwrap();
+    fn alloc_frames(num_pages: usize, align: usize) -> Option<PhysAddr> {
+        let layout = Layout::from_size_align(num_pages * 0x1000, align).unwrap();
         let ptr = unsafe { alloc::alloc::alloc(layout) };
         Some(PhysAddr::from(ptr as usize))
     }
