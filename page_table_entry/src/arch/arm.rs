@@ -119,6 +119,7 @@ bitflags::bitflags! {
 impl DescriptorAttr {
     /// Returns the common flags for both Section (L1) and Small Page (L2)
     /// descriptors.
+    #[inline]
     pub const fn common_flags(flags: MappingFlags) -> u32 {
         let mut bits = 0;
 
