@@ -29,7 +29,12 @@ bitflags::bitflags! {
         /// D bit was cleared.
         const D =   1 << 7;
 
-        const SG2002_KERNEL =  (0x7 << 60);
+        /// SG2002 specific flags
+        // SO– Strong ordered memory (1 << 63)
+        // C – Cacheable (1 << 62)
+        // B – Bufferable (1 << 61)
+        // Unkonw (1 << 60)
+        const SG2002_KERNEL =  (1 << 62) | (1 << 61) | (1 << 60);
         const SG2002_DEVICE =  (1 << 63) | (1 << 60);
     }
 }
@@ -96,18 +101,27 @@ impl Rv64PTE {
 impl GenericPTE for Rv64PTE {
     fn new_page(paddr: PhysAddr, mflags: MappingFlags, _is_huge: bool) -> Self {
         let flags = PTEFlags::from(mflags) | PTEFlags::A | PTEFlags::D;
+        debug_assert!(flags.intersects(PTEFlags::R | PTEFlags::X));
+        #[cfg(feature = "c906-cpu")]
         if mflags.contains(MappingFlags::DEVICE) {
-            // Set special flags for device memory
             let device_flags = PTEFlags::SG2002_DEVICE | flags;
-            // debug_assert!(flags.intersects(PTEFlags::R | PTEFlags::X));
-            Self(device_flags.bits() as u64 | ((paddr.as_usize() >> 2) as u64 & Self::PHYS_ADDR_MASK))
+            Self(
+                device_flags.bits() as u64
+                    | ((paddr.as_usize() >> 2) as u64 & Self::PHYS_ADDR_MASK),
+            )
         } else if mflags.contains(MappingFlags::USER) {
             Self(flags.bits() as u64 | ((paddr.as_usize() >> 2) as u64 & Self::PHYS_ADDR_MASK))
         } else {
-            // Set special flags for kernel memory
             let kernel_flags = PTEFlags::SG2002_KERNEL | flags;
-            // debug_assert!(flags.intersects(PTEFlags::R | PTEFlags::X));
-            Self(kernel_flags.bits() as u64 | ((paddr.as_usize() >> 2) as u64 & Self::PHYS_ADDR_MASK))
+            Self(
+                kernel_flags.bits() as u64
+                    | ((paddr.as_usize() >> 2) as u64 & Self::PHYS_ADDR_MASK),
+            )
+        }
+        #[cfg(not(feature = "c906-cpu"))]
+        {
+            debug_assert!(flags.intersects(PTEFlags::R | PTEFlags::X));
+            Self(flags.bits() as u64 | ((paddr.as_usize() >> 2) as u64 & Self::PHYS_ADDR_MASK))
         }
     }
 
