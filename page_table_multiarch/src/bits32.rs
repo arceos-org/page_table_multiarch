@@ -5,6 +5,7 @@ use memory_addr::{MemoryAddr, PAGE_SIZE_4K, PhysAddr};
 
 use crate::{
     GenericPTE, MappingFlags, PageSize, PagingError, PagingHandler, PagingMetaData, PagingResult,
+    TlbFlusher,
 };
 
 #[cfg(target_arch = "arm")]
@@ -275,15 +276,6 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> Drop for PageTable32<
         // Deallocate L1 page table (16KB = 4 pages)
         H::dealloc_frames(self.root_paddr, 4);
     }
-}
-
-// TODO: tune threshold; employ a more advanced data structure
-const SMALL_FLUSH_THRESHOLD: usize = 32;
-
-enum TlbFlusher<M: PagingMetaData> {
-    None,
-    Array(ArrayVec<M::VirtAddr, SMALL_FLUSH_THRESHOLD>),
-    Full,
 }
 
 /// A cursor created by [`PageTable32::cursor`] to modify the page table.

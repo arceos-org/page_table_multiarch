@@ -13,6 +13,7 @@ mod bits64;
 
 use core::fmt::Debug;
 
+use arrayvec::ArrayVec;
 use memory_addr::{MemoryAddr, PAGE_SIZE_4K, PhysAddr, VirtAddr};
 #[doc(no_inline)]
 pub use page_table_entry::{GenericPTE, MappingFlags};
@@ -159,4 +160,13 @@ impl From<PageSize> for usize {
     fn from(size: PageSize) -> usize {
         size as usize
     }
+}
+
+// TODO: tune threshold; employ a more advanced data structure
+const SMALL_FLUSH_THRESHOLD: usize = 32;
+
+enum TlbFlusher<M: PagingMetaData> {
+    None,
+    Array(ArrayVec<M::VirtAddr, SMALL_FLUSH_THRESHOLD>),
+    Full,
 }
