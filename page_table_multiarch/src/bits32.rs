@@ -39,6 +39,8 @@ const fn p2_index(vaddr: usize) -> usize {
 /// It tracks all L2 tables for proper deallocation.
 pub struct PageTable32<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> {
     root_paddr: PhysAddr,
+    #[cfg(feature = "copy-from")]
+    borrowed_entries: [u64; ENTRY_COUNT / 64],
     _phantom: PhantomData<(M, PTE, H)>,
 }
 
@@ -78,6 +80,8 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32<M, PTE, H
 
         Ok(Self {
             root_paddr,
+            #[cfg(feature = "copy-from")]
+            borrowed_entries: [0; ENTRY_COUNT / 64],
             _phantom: PhantomData,
         })
     }
@@ -257,7 +261,12 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> Drop for PageTable32<
     fn drop(&mut self) {
         // Deallocate all L2 page tables (each is 4KB)
         let table = self.get_table(self.root_paddr);
-        for entry in table {
+        #[allow(unused_variables)]
+        for (i, entry) in table.iter().enumerate() {
+            #[cfg(feature = "copy-from")]
+            if (self.borrowed_entries[i / 64] & (1 << (i % 64))) != 0 {
+                continue;
+            }
             if !entry.is_unused() && !entry.is_huge() {
                 // This is an L2 page table (4KB)
                 H::dealloc_frame(entry.paddr());
@@ -504,7 +513,17 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32Cursor
 
         // Simple copy here, no smart flush or tracking borrowing for now in 32-bit
         // The user just wants interface consistency.
-        dst_table[start_idx..end_idx].copy_from_slice(&src_table[start_idx..end_idx]);
+        for i in start_idx..end_idx {
+            let entry = &mut dst_table[i];
+            let is_borrowed = (self.inner.borrowed_entries[i / 64] & (1 << (i % 64))) != 0;
+            if !is_borrowed {
+                self.inner.borrowed_entries[i / 64] |= 1 << (i % 64);
+                if !entry.is_unused() && !entry.is_huge() {
+                    H::dealloc_frame(entry.paddr());
+                }
+            }
+            *entry = src_table[i];
+        }
         self.flusher = TlbFlusher::Full;
     }
 
