@@ -5,6 +5,14 @@ use page_table_entry::riscv::Rv64PTE;
 
 use crate::{PageTable64, PageTable64Mut, PagingMetaData};
 
+fn local_flush_tlb(vaddr: Option<memory_addr::VirtAddr>) {
+    if let Some(vaddr) = vaddr {
+        riscv::asm::sfence_vma(0, vaddr.as_usize())
+    } else {
+        riscv::asm::sfence_vma_all();
+    }
+}
+
 /// A virtual address that can be used in RISC-V Sv39 and Sv48 page tables.
 pub trait SvVirtAddr: memory_addr::MemoryAddr + Send + Sync {
     /// Flush the TLB.
@@ -14,11 +22,14 @@ pub trait SvVirtAddr: memory_addr::MemoryAddr + Send + Sync {
 impl SvVirtAddr for VirtAddr {
     #[inline]
     fn flush_tlb(vaddr: Option<Self>) {
-        if let Some(vaddr) = vaddr {
-            riscv::asm::sfence_vma(0, vaddr.as_usize())
-        } else {
-            riscv::asm::sfence_vma_all();
+        #[cfg(feature = "smp")]
+        {
+            use crate::__TlbFlushIf_mod;
+            use crate_interface::call_interface;
+
+            call_interface!(TlbFlushIf::flush_all(vaddr));
         }
+        local_flush_tlb(vaddr);
     }
 }
 
