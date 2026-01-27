@@ -1,0 +1,9 @@
+(function() {
+    const implementors = Object.fromEntries([["page_table_entry",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAndAssign.html\" title=\"trait core::ops::bit::BitAndAssign\">BitAndAssign</a> for <a class=\"struct\" href=\"page_table_entry/aarch64/struct.DescriptorAttr.html\" title=\"struct page_table_entry::aarch64::DescriptorAttr\">DescriptorAttr</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAndAssign.html\" title=\"trait core::ops::bit::BitAndAssign\">BitAndAssign</a> for <a class=\"struct\" href=\"page_table_entry/arm/struct.DescriptorAttr.html\" title=\"struct page_table_entry::arm::DescriptorAttr\">DescriptorAttr</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAndAssign.html\" title=\"trait core::ops::bit::BitAndAssign\">BitAndAssign</a> for <a class=\"struct\" href=\"page_table_entry/loongarch64/struct.PTEFlags.html\" title=\"struct page_table_entry::loongarch64::PTEFlags\">PTEFlags</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAndAssign.html\" title=\"trait core::ops::bit::BitAndAssign\">BitAndAssign</a> for <a class=\"struct\" href=\"page_table_entry/riscv/struct.PTEFlags.html\" title=\"struct page_table_entry::riscv::PTEFlags\">PTEFlags</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAndAssign.html\" title=\"trait core::ops::bit::BitAndAssign\">BitAndAssign</a> for <a class=\"struct\" href=\"page_table_entry/struct.MappingFlags.html\" title=\"struct page_table_entry::MappingFlags\">MappingFlags</a>",0]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":59,"fragment_lengths":[1634]}
