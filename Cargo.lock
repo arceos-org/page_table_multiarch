@@ -100,6 +100,18 @@ checksum = "b1f0625c50adb5f6aaf47f05cae3c4dbc13a74c659241b06c4576f3d7e1da940"
 [[package]]
 name = "page_table_entry"
 version = "0.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dda9891ec368fda90e4b2cc36592b4881073e25a339fe7e3eddd811f0cf6bf18"
+dependencies = [
+ "aarch64-cpu",
+ "bitflags 2.10.0",
+ "memory_addr",
+ "x86_64",
+]
+
+[[package]]
+name = "page_table_entry"
+version = "0.5.8-preview.1"
 dependencies = [
  "aarch64-cpu",
  "bitflags 2.10.0",
@@ -109,14 +121,14 @@ dependencies = [
 
 [[package]]
 name = "page_table_multiarch"
-version = "0.5.7"
+version = "0.5.8-preview.1"
 dependencies = [
  "arrayvec",
  "axerrno 0.1.2",
  "bitmaps",
  "log",
  "memory_addr",
- "page_table_entry",
+ "page_table_entry 0.5.7",
  "rand",
  "riscv",
  "x86",
