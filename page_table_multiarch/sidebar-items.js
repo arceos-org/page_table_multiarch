@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PageSize","PagingError"],"mod":["aarch64","arm","loongarch64","riscv","x86_64"],"struct":["PageTable32","PageTable32Cursor","PageTable64","PageTable64Cursor"],"trait":["PagingHandler","PagingMetaData"],"type":["PagingResult"]};
