@@ -99,7 +99,7 @@ checksum = "b1f0625c50adb5f6aaf47f05cae3c4dbc13a74c659241b06c4576f3d7e1da940"
 
 [[package]]
 name = "page_table_entry"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "aarch64-cpu",
  "bitflags 2.10.0",
@@ -109,7 +109,7 @@ dependencies = [
 
 [[package]]
 name = "page_table_multiarch"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "arrayvec",
  "axerrno 0.1.2",
