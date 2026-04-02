@@ -551,10 +551,11 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
                     if entry.is_present() {
                         entry.set_flags(flags, page_size.is_huge());
                         self.push(vaddr);
+                        page_size
+                    } else {
+                        // ignore if not present
+                        PageSize::Size4K
                     }
-                    // ignore if not present
-
-                    page_size
                 }
                 Err(PagingError::NotMapped) => PageSize::Size4K,
                 Err(e) => {
