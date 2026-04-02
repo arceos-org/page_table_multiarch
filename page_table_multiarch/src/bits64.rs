@@ -553,8 +553,9 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
                         self.push(vaddr);
                         page_size
                     } else {
+                        // ignore if not present
                         PageSize::Size4K
-                    } // ignore if not present
+                    }
                 }
                 Err(PagingError::NotMapped) => PageSize::Size4K,
                 Err(e) => {
