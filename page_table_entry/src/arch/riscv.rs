@@ -111,8 +111,10 @@ impl Rv64PTE {
     }
 
     /// Set CPU PTE extension flags
+    /// mflags is current PTE MappingFlags
+    /// extended_flags are all the extended flag bits that need to be set
     #[allow(unused)]
-    pub fn set_extended_flags(&mut self, mflags: MappingFlags) -> PTEFlags {
+    pub fn set_extended_flags(&mut self, mflags: MappingFlags, extended_flags: u64) -> PTEFlags {
         #[cfg(feature = "xuantie-c9xx")]
         {
             // CPU T-Head XUANTIE-C9xx extended flags:
@@ -127,6 +129,7 @@ impl Rv64PTE {
                 self.0 &= !((PTEFlags::B | PTEFlags::C).bits() as u64);
             }
         }
+        self.0 |= (extended_flags & !Self::PHYS_ADDR_MASK);
         PTEFlags::from_bits_truncate(self.0 as usize)
     }
 }
@@ -161,7 +164,7 @@ impl GenericPTE for Rv64PTE {
 
     fn set_flags(&mut self, mflags: MappingFlags, _is_huge: bool) {
         let mut flags = PTEFlags::from(mflags) | PTEFlags::A | PTEFlags::D;
-        flags |= self.set_extended_flags(mflags);
+        flags |= self.set_extended_flags(mflags, 0);
 
         debug_assert!(flags.intersects(PTEFlags::R | PTEFlags::X));
         self.0 = (self.0 & Self::PHYS_ADDR_MASK) | flags.bits() as u64;
