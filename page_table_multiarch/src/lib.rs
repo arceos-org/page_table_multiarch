@@ -7,8 +7,10 @@ extern crate log;
 
 mod arch;
 #[cfg(any(target_pointer_width = "32", docsrs))]
+#[cfg_attr(docsrs, doc(cfg(target_pointer_width = "32")))]
 mod bits32;
 #[cfg(any(target_pointer_width = "64", docsrs))]
+#[cfg_attr(docsrs, doc(cfg(target_pointer_width = "64")))]
 mod bits64;
 
 use core::fmt::Debug;
@@ -18,16 +20,13 @@ use memory_addr::{MemoryAddr, PAGE_SIZE_4K, PhysAddr, VirtAddr};
 #[doc(no_inline)]
 pub use page_table_entry::{GenericPTE, MappingFlags};
 
+pub use self::arch::*;
 #[cfg(any(target_pointer_width = "32", docsrs))]
-pub use self::{
-    arch::*,
-    bits32::{PageTable32, PageTable32Cursor},
-};
+#[cfg_attr(docsrs, doc(cfg(target_pointer_width = "32")))]
+pub use self::bits32::{PageTable32, PageTable32Cursor};
 #[cfg(any(target_pointer_width = "64", docsrs))]
-pub use self::{
-    arch::*,
-    bits64::{PageTable64, PageTable64Cursor},
-};
+#[cfg_attr(docsrs, doc(cfg(target_pointer_width = "64")))]
+pub use self::bits64::{PageTable64, PageTable64Cursor};
 
 /// The error type for page table operation failures.
 #[derive(Debug, PartialEq, Clone, Copy)]

@@ -522,7 +522,7 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32Cursor
 
     /// Flushes the TLB according to the recorded flush requests.
     pub fn flush(&mut self) {
-        #[cfg(not(docsrs))]
+        #[cfg(target_os = "none")]
         match &self.flusher {
             TlbFlusher::None => {}
             TlbFlusher::Array(addrs) => {
