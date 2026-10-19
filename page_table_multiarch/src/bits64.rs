@@ -367,8 +367,9 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable64Cursor
         page_size: PageSize,
         flags: MappingFlags,
     ) -> PagingResult {
-        // `vaddr` does not need to be page-aligned here; `get_entry_mut_or_create`
-        // internally maps `vaddr` to its corresponding page table entry (PTE).
+        // `vaddr` does not need to be page-aligned here;
+        // `get_entry_mut_or_create` internally maps `vaddr` to its
+        // corresponding page table entry (PTE).
         let entry = self.inner.get_entry_mut_or_create(vaddr, page_size)?;
         if !entry.is_unused() {
             return Err(PagingError::AlreadyMapped);
