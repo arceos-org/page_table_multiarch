@@ -20,10 +20,10 @@ xuantie-c9xx = []
 bitflags = "2.9"
 memory_addr.workspace = true
 
-[target.'cfg(any(target_arch = "aarch64", doc, docsrs))'.dependencies]
+[target.'cfg(any(target_arch = "aarch64", docsrs))'.dependencies]
 aarch64-cpu = "11.0"
 
-[target.'cfg(any(target_arch = "x86_64", doc, docsrs))'.dependencies]
+[target.'cfg(any(target_arch = "x86_64", docsrs))'.dependencies]
 x86_64 = { version = "0.15", default-features = false }
 
 [package.metadata.docs.rs]

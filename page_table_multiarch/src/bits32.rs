@@ -66,7 +66,8 @@ impl<M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32<M, PTE, H
 
             #[cfg(not(target_arch = "arm"))]
             {
-                // Other 32-bit architectures page table: 512 entries * 8 bytes = 4KB
+                // Other 32-bit architectures page table: 512 entries * 8 bytes
+                // = 4KB
                 const SIZE_PAGES: usize = 1; // 4KB = 1 * 4KB
                 let root_paddr = H::alloc_frame().ok_or(PagingError::NoMemory)?;
                 (root_paddr, SIZE_PAGES)
@@ -503,8 +504,8 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32Cursor
         assert!(start_idx < ENTRY_COUNT);
         assert!(end_idx <= ENTRY_COUNT);
 
-        // Simple copy here, no smart flush or tracking borrowing for now in 32-bit
-        // The user just wants interface consistency.
+        // Simple copy here, no smart flush or tracking borrowing for now in
+        // 32-bit. The user just wants interface consistency.
         for i in start_idx..end_idx {
             let entry = &mut dst_table[i];
             let is_borrowed = (self.inner.borrowed_entries[i / 64] & (1 << (i % 64))) != 0;
@@ -521,7 +522,7 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32Cursor
 
     /// Flushes the TLB according to the recorded flush requests.
     pub fn flush(&mut self) {
-        #[cfg(not(docsrs))]
+        #[cfg(target_os = "none")]
         match &self.flusher {
             TlbFlusher::None => {}
             TlbFlusher::Array(addrs) => {

@@ -169,7 +169,8 @@ impl DescriptorAttr {
         // We use simplified model: if not executable, set appropriate bits
         if !flags.contains(MappingFlags::EXECUTE) {
             // XN for sections: can be indicated via domain or TEX settings
-            // Here we assume XN support via bit 4 for supersection or AP settings
+            // Here we assume XN support via bit 4 for supersection or AP
+            // settings
             bits |= Self::XN_SMALL.bits();
         }
 

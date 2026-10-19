@@ -25,10 +25,10 @@ log = "0.4"
 memory_addr.workspace = true
 page_table_entry.workspace = true
 
-[target.'cfg(any(target_arch = "x86_64", doc, docsrs))'.dependencies]
+[target.'cfg(any(target_arch = "x86_64", docsrs))'.dependencies]
 x86 = "0.52"
 
-[target.'cfg(any(target_arch = "riscv32", target_arch = "riscv64", doc, docsrs))'.dependencies]
+[target.'cfg(any(target_arch = "riscv32", target_arch = "riscv64", docsrs))'.dependencies]
 riscv = { version = "0.16", default-features = false }
 
 [package.metadata.docs.rs]
