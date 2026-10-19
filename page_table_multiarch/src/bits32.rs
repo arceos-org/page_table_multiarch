@@ -505,7 +505,7 @@ impl<'a, M: PagingMetaData, PTE: GenericPTE, H: PagingHandler> PageTable32Cursor
         assert!(end_idx <= ENTRY_COUNT);
 
         // Simple copy here, no smart flush or tracking borrowing for now in
-        // 32-bit The user just wants interface consistency.
+        // 32-bit. The user just wants interface consistency.
         for i in start_idx..end_idx {
             let entry = &mut dst_table[i];
             let is_borrowed = (self.inner.borrowed_entries[i / 64] & (1 << (i % 64))) != 0;
